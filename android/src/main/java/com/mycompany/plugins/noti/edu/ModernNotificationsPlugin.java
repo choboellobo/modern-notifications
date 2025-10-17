@@ -174,7 +174,7 @@ public class ModernNotificationsPlugin extends Plugin {
         if (Build.VERSION.SDK_INT >= 35 && notification.has("progressStyle")) { // Android 16 is API 35 xxx
             JSObject progressStyle = notification.getJSObject("progressStyle");
             if (progressStyle != null) {
-                addProgressStyle(builder, progressStyle);
+                addProgressStyle(builder, progressStyle, notification);
             }
         }
 
@@ -249,7 +249,7 @@ public class ModernNotificationsPlugin extends Plugin {
         return builder;
     }
 
-    private void addProgressStyle(NotificationCompat.Builder builder, JSObject progressStyle) {
+    private void addProgressStyle(NotificationCompat.Builder builder, JSObject progressStyle, JSObject notification) {
         if (Build.VERSION.SDK_INT >= 36) { // Android API level 36
             try {
                 // Use the official Android 16 Notification.ProgressStyle API
@@ -381,19 +381,75 @@ public class ModernNotificationsPlugin extends Plugin {
                 
                 // Apply the ProgressStyle to the notification
                 // Note: We need to build the notification with the native Android API for ProgressStyle
-                Notification notification = new Notification.Builder(getContext(), DEFAULT_CHANNEL_ID)
+                Notification.Builder nativeBuilder = new Notification.Builder(getContext(), DEFAULT_CHANNEL_ID)
                     .setContentTitle(builder.build().extras.getString(Notification.EXTRA_TITLE))
                     .setContentText(builder.build().extras.getString(Notification.EXTRA_TEXT))
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setStyle(ps)
-                    .setOngoing(true) // Make it ongoing for progress notifications
-                    .build();
+                    .setOngoing(true); // Make it ongoing for progress notifications
+                
+                // Add actions if provided
+                if (notification.has("actions")) {
+                    try {
+                        JSONArray actionsJSON = notification.getJSONArray("actions");
+                        if (actionsJSON != null) {
+                            for (int i = 0; i < actionsJSON.length(); i++) {
+                                JSONObject actionJSON = actionsJSON.optJSONObject(i);
+                                if (actionJSON != null) {
+                                    JSObject action = JSObject.fromJSONObject(actionJSON);
+                                    String actionId = action.getString("id");
+                                    String actionTitle = action.getString("title");
+                                    String actionIcon = action.getString("icon");
+                                    
+                                    if (actionId != null && actionTitle != null) {
+                                        // Create intent for this action - using the main activity
+                                        Intent actionIntent = new Intent(getContext(), getActivity().getClass());
+                                        actionIntent.putExtra("action_id", actionId);
+                                        actionIntent.putExtra("notification_id", notification.getInteger("id"));
+                                        actionIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                        
+                                        PendingIntent actionPendingIntent = PendingIntent.getActivity(
+                                            getContext(), 
+                                            (notification.getInteger("id") + actionId).hashCode(), 
+                                            actionIntent, 
+                                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                        );
+                                        
+                                        // Find icon resource
+                                        int iconRes = android.R.drawable.ic_menu_info_details; // default icon
+                                        if (actionIcon != null) {
+                                            int customIconRes = getContext().getResources().getIdentifier(
+                                                actionIcon, "drawable", getContext().getPackageName()
+                                            );
+                                            if (customIconRes != 0) {
+                                                iconRes = customIconRes;
+                                            }
+                                        }
+                                        
+                                        // Create and add the action
+                                        Notification.Action nativeAction = new Notification.Action.Builder(
+                                            Icon.createWithResource(getContext(), iconRes),
+                                            actionTitle,
+                                            actionPendingIntent
+                                        ).build();
+                                        
+                                        nativeBuilder.addAction(nativeAction);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing notification actions for ProgressStyle", e);
+                    }
+                }
+                
+                Notification notificationBuilt = nativeBuilder.build();
                 
                 // Get notification manager and show the notification
                 NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 if (notificationManager != null) {
-                    int notificationId = progressStyle.has("id") ? progressStyle.getInteger("id") : (int) System.currentTimeMillis();
-                    notificationManager.notify(notificationId, notification);
+                    int notificationId = notification.getInteger("id");
+                    notificationManager.notify(notificationId, notificationBuilt);
                 }
                 
                 Log.i(TAG, "Successfully created Progress-centric notification with segments and points");
