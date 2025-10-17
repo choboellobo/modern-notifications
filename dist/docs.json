@@ -1,0 +1,1465 @@
+{
+  "api": {
+    "name": "ModernNotificationsPlugin",
+    "slug": "modernnotificationsplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "requestPermissions",
+        "signature": "() => Promise<PermissionStatus>",
+        "parameters": [],
+        "returns": "Promise<PermissionStatus>",
+        "tags": [],
+        "docs": "Request permission to display local notifications",
+        "complexTypes": [
+          "PermissionStatus"
+        ],
+        "slug": "requestpermissions"
+      },
+      {
+        "name": "checkPermissions",
+        "signature": "() => Promise<PermissionStatus>",
+        "parameters": [],
+        "returns": "Promise<PermissionStatus>",
+        "tags": [],
+        "docs": "Check current permission status",
+        "complexTypes": [
+          "PermissionStatus"
+        ],
+        "slug": "checkpermissions"
+      },
+      {
+        "name": "schedule",
+        "signature": "(options: ScheduleOptions) => Promise<NotificationResult>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "ScheduleOptions"
+          }
+        ],
+        "returns": "Promise<NotificationResult>",
+        "tags": [],
+        "docs": "Schedule one or more local notifications",
+        "complexTypes": [
+          "NotificationResult",
+          "ScheduleOptions"
+        ],
+        "slug": "schedule"
+      },
+      {
+        "name": "getPending",
+        "signature": "() => Promise<NotificationResult>",
+        "parameters": [],
+        "returns": "Promise<NotificationResult>",
+        "tags": [],
+        "docs": "Get a list of pending notifications",
+        "complexTypes": [
+          "NotificationResult"
+        ],
+        "slug": "getpending"
+      },
+      {
+        "name": "getDelivered",
+        "signature": "() => Promise<NotificationResult>",
+        "parameters": [],
+        "returns": "Promise<NotificationResult>",
+        "tags": [],
+        "docs": "Get a list of delivered notifications",
+        "complexTypes": [
+          "NotificationResult"
+        ],
+        "slug": "getdelivered"
+      },
+      {
+        "name": "cancel",
+        "signature": "(options: { notifications: { id: number; }[]; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ notifications: { id: number; }[]; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Cancel specific notifications by ID",
+        "complexTypes": [],
+        "slug": "cancel"
+      },
+      {
+        "name": "cancelAll",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Cancel all pending notifications",
+        "complexTypes": [],
+        "slug": "cancelall"
+      },
+      {
+        "name": "removeDelivered",
+        "signature": "(options: { notifications: { id: number; }[]; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ notifications: { id: number; }[]; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Remove specific delivered notifications by ID",
+        "complexTypes": [],
+        "slug": "removedelivered"
+      },
+      {
+        "name": "removeAllDelivered",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Remove all delivered notifications",
+        "complexTypes": [],
+        "slug": "removealldelivered"
+      },
+      {
+        "name": "createChannel",
+        "signature": "(channel: NotificationChannel) => Promise<void>",
+        "parameters": [
+          {
+            "name": "channel",
+            "docs": "",
+            "type": "NotificationChannel"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Create a notification channel (Android)",
+        "complexTypes": [
+          "NotificationChannel"
+        ],
+        "slug": "createchannel"
+      },
+      {
+        "name": "deleteChannel",
+        "signature": "(options: { id: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ id: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Delete a notification channel (Android)",
+        "complexTypes": [],
+        "slug": "deletechannel"
+      },
+      {
+        "name": "listChannels",
+        "signature": "() => Promise<{ channels: NotificationChannel[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ channels: NotificationChannel[]; }>",
+        "tags": [],
+        "docs": "List all notification channels (Android)",
+        "complexTypes": [
+          "NotificationChannel"
+        ],
+        "slug": "listchannels"
+      },
+      {
+        "name": "updateProgress",
+        "signature": "(options: { id: number; progress: number; progressStyle?: ProgressStyleOptions; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ id: number; progress: number; progressStyle?: ProgressStyleOptions | undefined; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Update progress for a progress-centric notification",
+        "complexTypes": [
+          "ProgressStyleOptions"
+        ],
+        "slug": "updateprogress"
+      },
+      {
+        "name": "addProgressPoints",
+        "signature": "(options: { id: number; points: ProgressStylePoint[]; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ id: number; points: ProgressStylePoint[]; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Add points to a progress-centric notification",
+        "complexTypes": [
+          "ProgressStylePoint"
+        ],
+        "slug": "addprogresspoints"
+      },
+      {
+        "name": "updateProgressSegments",
+        "signature": "(options: { id: number; segments: ProgressStyleSegment[]; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ id: number; segments: ProgressStyleSegment[]; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Update segments in a progress-centric notification",
+        "complexTypes": [
+          "ProgressStyleSegment"
+        ],
+        "slug": "updateprogresssegments"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "PermissionStatus",
+      "slug": "permissionstatus",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "display",
+          "tags": [],
+          "docs": "Permission state for local notifications",
+          "complexTypes": [],
+          "type": "'granted' | 'denied' | 'prompt'"
+        }
+      ]
+    },
+    {
+      "name": "NotificationResult",
+      "slug": "notificationresult",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "notifications",
+          "tags": [],
+          "docs": "Array of scheduled notifications",
+          "complexTypes": [
+            "LocalNotification"
+          ],
+          "type": "LocalNotification[]"
+        }
+      ]
+    },
+    {
+      "name": "LocalNotification",
+      "slug": "localnotification",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "id",
+          "tags": [],
+          "docs": "Unique identifier for the notification",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "title",
+          "tags": [],
+          "docs": "Title of the notification",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "tags": [],
+          "docs": "Body text of the notification",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "subText",
+          "tags": [],
+          "docs": "Subtext displayed in the header",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "largeIcon",
+          "tags": [],
+          "docs": "Large icon for the notification (resource name or URL)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "smallIcon",
+          "tags": [],
+          "docs": "Small icon for the notification (resource name)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "channelId",
+          "tags": [],
+          "docs": "Notification channel ID (Android)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "sound",
+          "tags": [],
+          "docs": "Sound to play (resource name or 'default')",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "badge",
+          "tags": [],
+          "docs": "Whether to show a badge (iOS)",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "extra",
+          "tags": [],
+          "docs": "Extra data to include with the notification",
+          "complexTypes": [],
+          "type": "any"
+        },
+        {
+          "name": "actions",
+          "tags": [],
+          "docs": "Actions available on the notification",
+          "complexTypes": [
+            "NotificationAction"
+          ],
+          "type": "NotificationAction[] | undefined"
+        },
+        {
+          "name": "progressStyle",
+          "tags": [],
+          "docs": "Progress-centric notification style (Android 16+)",
+          "complexTypes": [
+            "ProgressStyleOptions"
+          ],
+          "type": "ProgressStyleOptions"
+        },
+        {
+          "name": "schedule",
+          "tags": [],
+          "docs": "Schedule options for the notification",
+          "complexTypes": [
+            "LocalNotificationSchedule"
+          ],
+          "type": "LocalNotificationSchedule"
+        },
+        {
+          "name": "priority",
+          "tags": [],
+          "docs": "Priority level (Android)",
+          "complexTypes": [],
+          "type": "'high' | 'normal' | 'low' | 'min' | undefined"
+        },
+        {
+          "name": "importance",
+          "tags": [],
+          "docs": "Importance level (Android 8.0+)",
+          "complexTypes": [],
+          "type": "'default' | 'high' | 'low' | 'min' | undefined"
+        },
+        {
+          "name": "autoCancel",
+          "tags": [],
+          "docs": "Auto-cancel notification when tapped",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "ongoing",
+          "tags": [],
+          "docs": "Make notification ongoing",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "showWhen",
+          "tags": [],
+          "docs": "Show notification timestamp",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "when",
+          "tags": [],
+          "docs": "Custom timestamp for the notification",
+          "complexTypes": [
+            "Date"
+          ],
+          "type": "Date"
+        }
+      ]
+    },
+    {
+      "name": "NotificationAction",
+      "slug": "notificationaction",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "id",
+          "tags": [],
+          "docs": "Unique identifier for the action",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "tags": [],
+          "docs": "Title displayed for the action",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "icon",
+          "tags": [],
+          "docs": "Icon resource name for the action",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "requiresAuthentication",
+          "tags": [],
+          "docs": "Whether the action requires authentication",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        }
+      ]
+    },
+    {
+      "name": "ProgressStyleOptions",
+      "slug": "progressstyleoptions",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "styledByProgress",
+          "tags": [],
+          "docs": "Whether the progress bar should be styled by progress value",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "progress",
+          "tags": [],
+          "docs": "Current progress value",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "maxProgress",
+          "tags": [],
+          "docs": "Maximum progress value (default: 100)",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "trackerIcon",
+          "tags": [],
+          "docs": "Icon resource name for the progress tracker",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "segments",
+          "tags": [],
+          "docs": "Array of segments for the progress bar",
+          "complexTypes": [
+            "ProgressStyleSegment"
+          ],
+          "type": "ProgressStyleSegment[] | undefined"
+        },
+        {
+          "name": "points",
+          "tags": [],
+          "docs": "Array of points on the progress bar",
+          "complexTypes": [
+            "ProgressStylePoint"
+          ],
+          "type": "ProgressStylePoint[] | undefined"
+        }
+      ]
+    },
+    {
+      "name": "ProgressStyleSegment",
+      "slug": "progressstylesegment",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "length",
+          "tags": [],
+          "docs": "Length of the segment",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "color",
+          "tags": [],
+          "docs": "Color of the segment (hex color string, e.g., \"#FFFF00\" for yellow)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "ProgressStylePoint",
+      "slug": "progressstylepoint",
+      "docs": "Interface for Progress-centric notifications in Android 16",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "position",
+          "tags": [],
+          "docs": "Position of the point on the progress bar",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "color",
+          "tags": [],
+          "docs": "Color of the point (hex color string, e.g., \"#FF0000\" for red)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "icon",
+          "tags": [],
+          "docs": "Icon resource name for the point",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "LocalNotificationSchedule",
+      "slug": "localnotificationschedule",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "at",
+          "tags": [],
+          "docs": "Schedule notification at a specific date/time",
+          "complexTypes": [
+            "Date"
+          ],
+          "type": "Date"
+        },
+        {
+          "name": "repeats",
+          "tags": [],
+          "docs": "Schedule notification to repeat",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "after",
+          "tags": [],
+          "docs": "Schedule notification after a delay (in milliseconds)",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "on",
+          "tags": [],
+          "docs": "Schedule notification on specific days of the week (1-7, where 1 is Sunday)",
+          "complexTypes": [],
+          "type": "{ weekday?: number | undefined; hour?: number | undefined; minute?: number | undefined; } | undefined"
+        }
+      ]
+    },
+    {
+      "name": "Date",
+      "slug": "date",
+      "docs": "Enables basic storage and retrieval of dates and times.",
+      "tags": [],
+      "methods": [
+        {
+          "name": "toString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a string representation of a date. The format of the string depends on the locale.",
+          "complexTypes": [],
+          "slug": "tostring"
+        },
+        {
+          "name": "toDateString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a date as a string value.",
+          "complexTypes": [],
+          "slug": "todatestring"
+        },
+        {
+          "name": "toTimeString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a time as a string value.",
+          "complexTypes": [],
+          "slug": "totimestring"
+        },
+        {
+          "name": "toLocaleString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a value as a string value appropriate to the host environment's current locale.",
+          "complexTypes": [],
+          "slug": "tolocalestring"
+        },
+        {
+          "name": "toLocaleDateString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a date as a string value appropriate to the host environment's current locale.",
+          "complexTypes": [],
+          "slug": "tolocaledatestring"
+        },
+        {
+          "name": "toLocaleTimeString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a time as a string value appropriate to the host environment's current locale.",
+          "complexTypes": [],
+          "slug": "tolocaletimestring"
+        },
+        {
+          "name": "valueOf",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Returns the stored time value in milliseconds since midnight, January 1, 1970 UTC.",
+          "complexTypes": [],
+          "slug": "valueof"
+        },
+        {
+          "name": "getTime",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the time value in milliseconds.",
+          "complexTypes": [],
+          "slug": "gettime"
+        },
+        {
+          "name": "getFullYear",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the year, using local time.",
+          "complexTypes": [],
+          "slug": "getfullyear"
+        },
+        {
+          "name": "getUTCFullYear",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the year using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcfullyear"
+        },
+        {
+          "name": "getMonth",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the month, using local time.",
+          "complexTypes": [],
+          "slug": "getmonth"
+        },
+        {
+          "name": "getUTCMonth",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the month of a Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcmonth"
+        },
+        {
+          "name": "getDate",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the day-of-the-month, using local time.",
+          "complexTypes": [],
+          "slug": "getdate"
+        },
+        {
+          "name": "getUTCDate",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the day-of-the-month, using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcdate"
+        },
+        {
+          "name": "getDay",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the day of the week, using local time.",
+          "complexTypes": [],
+          "slug": "getday"
+        },
+        {
+          "name": "getUTCDay",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the day of the week using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcday"
+        },
+        {
+          "name": "getHours",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the hours in a date, using local time.",
+          "complexTypes": [],
+          "slug": "gethours"
+        },
+        {
+          "name": "getUTCHours",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the hours value in a Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutchours"
+        },
+        {
+          "name": "getMinutes",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the minutes of a Date object, using local time.",
+          "complexTypes": [],
+          "slug": "getminutes"
+        },
+        {
+          "name": "getUTCMinutes",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the minutes of a Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcminutes"
+        },
+        {
+          "name": "getSeconds",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the seconds of a Date object, using local time.",
+          "complexTypes": [],
+          "slug": "getseconds"
+        },
+        {
+          "name": "getUTCSeconds",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the seconds of a Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcseconds"
+        },
+        {
+          "name": "getMilliseconds",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the milliseconds of a Date, using local time.",
+          "complexTypes": [],
+          "slug": "getmilliseconds"
+        },
+        {
+          "name": "getUTCMilliseconds",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the milliseconds of a Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "getutcmilliseconds"
+        },
+        {
+          "name": "getTimezoneOffset",
+          "signature": "() => number",
+          "parameters": [],
+          "returns": "number",
+          "tags": [],
+          "docs": "Gets the difference in minutes between the time on the local computer and Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "gettimezoneoffset"
+        },
+        {
+          "name": "setTime",
+          "signature": "(time: number) => number",
+          "parameters": [
+            {
+              "name": "time",
+              "docs": "A numeric value representing the number of elapsed milliseconds since midnight, January 1, 1970 GMT.",
+              "type": "number"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "time A numeric value representing the number of elapsed milliseconds since midnight, January 1, 1970 GMT."
+            }
+          ],
+          "docs": "Sets the date and time value in the Date object.",
+          "complexTypes": [],
+          "slug": "settime"
+        },
+        {
+          "name": "setMilliseconds",
+          "signature": "(ms: number) => number",
+          "parameters": [
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the millisecond value.",
+              "type": "number"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the millisecond value."
+            }
+          ],
+          "docs": "Sets the milliseconds value in the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setmilliseconds"
+        },
+        {
+          "name": "setUTCMilliseconds",
+          "signature": "(ms: number) => number",
+          "parameters": [
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the millisecond value.",
+              "type": "number"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the millisecond value."
+            }
+          ],
+          "docs": "Sets the milliseconds value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcmilliseconds"
+        },
+        {
+          "name": "setSeconds",
+          "signature": "(sec: number, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the seconds value in the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setseconds"
+        },
+        {
+          "name": "setUTCSeconds",
+          "signature": "(sec: number, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the seconds value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcseconds"
+        },
+        {
+          "name": "setMinutes",
+          "signature": "(min: number, sec?: number | undefined, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "min",
+              "docs": "A numeric value equal to the minutes value.",
+              "type": "number"
+            },
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "min A numeric value equal to the minutes value."
+            },
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the minutes value in the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setminutes"
+        },
+        {
+          "name": "setUTCMinutes",
+          "signature": "(min: number, sec?: number | undefined, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "min",
+              "docs": "A numeric value equal to the minutes value.",
+              "type": "number"
+            },
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "min A numeric value equal to the minutes value."
+            },
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the minutes value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcminutes"
+        },
+        {
+          "name": "setHours",
+          "signature": "(hours: number, min?: number | undefined, sec?: number | undefined, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "hours",
+              "docs": "A numeric value equal to the hours value.",
+              "type": "number"
+            },
+            {
+              "name": "min",
+              "docs": "A numeric value equal to the minutes value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "hours A numeric value equal to the hours value."
+            },
+            {
+              "name": "param",
+              "text": "min A numeric value equal to the minutes value."
+            },
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the hour value in the Date object using local time.",
+          "complexTypes": [],
+          "slug": "sethours"
+        },
+        {
+          "name": "setUTCHours",
+          "signature": "(hours: number, min?: number | undefined, sec?: number | undefined, ms?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "hours",
+              "docs": "A numeric value equal to the hours value.",
+              "type": "number"
+            },
+            {
+              "name": "min",
+              "docs": "A numeric value equal to the minutes value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "sec",
+              "docs": "A numeric value equal to the seconds value.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "ms",
+              "docs": "A numeric value equal to the milliseconds value.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "hours A numeric value equal to the hours value."
+            },
+            {
+              "name": "param",
+              "text": "min A numeric value equal to the minutes value."
+            },
+            {
+              "name": "param",
+              "text": "sec A numeric value equal to the seconds value."
+            },
+            {
+              "name": "param",
+              "text": "ms A numeric value equal to the milliseconds value."
+            }
+          ],
+          "docs": "Sets the hours value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutchours"
+        },
+        {
+          "name": "setDate",
+          "signature": "(date: number) => number",
+          "parameters": [
+            {
+              "name": "date",
+              "docs": "A numeric value equal to the day of the month.",
+              "type": "number"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "date A numeric value equal to the day of the month."
+            }
+          ],
+          "docs": "Sets the numeric day-of-the-month value of the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setdate"
+        },
+        {
+          "name": "setUTCDate",
+          "signature": "(date: number) => number",
+          "parameters": [
+            {
+              "name": "date",
+              "docs": "A numeric value equal to the day of the month.",
+              "type": "number"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "date A numeric value equal to the day of the month."
+            }
+          ],
+          "docs": "Sets the numeric day of the month in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcdate"
+        },
+        {
+          "name": "setMonth",
+          "signature": "(month: number, date?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "month",
+              "docs": "A numeric value equal to the month. The value for January is 0, and other month values follow consecutively.",
+              "type": "number"
+            },
+            {
+              "name": "date",
+              "docs": "A numeric value representing the day of the month. If this value is not supplied, the value from a call to the getDate method is used.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively."
+            },
+            {
+              "name": "param",
+              "text": "date A numeric value representing the day of the month. If this value is not supplied, the value from a call to the getDate method is used."
+            }
+          ],
+          "docs": "Sets the month value in the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setmonth"
+        },
+        {
+          "name": "setUTCMonth",
+          "signature": "(month: number, date?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "month",
+              "docs": "A numeric value equal to the month. The value for January is 0, and other month values follow consecutively.",
+              "type": "number"
+            },
+            {
+              "name": "date",
+              "docs": "A numeric value representing the day of the month. If it is not supplied, the value from a call to the getUTCDate method is used.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively."
+            },
+            {
+              "name": "param",
+              "text": "date A numeric value representing the day of the month. If it is not supplied, the value from a call to the getUTCDate method is used."
+            }
+          ],
+          "docs": "Sets the month value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcmonth"
+        },
+        {
+          "name": "setFullYear",
+          "signature": "(year: number, month?: number | undefined, date?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "year",
+              "docs": "A numeric value for the year.",
+              "type": "number"
+            },
+            {
+              "name": "month",
+              "docs": "A zero-based numeric value for the month (0 for January, 11 for December). Must be specified if numDate is specified.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "date",
+              "docs": "A numeric value equal for the day of the month.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "year A numeric value for the year."
+            },
+            {
+              "name": "param",
+              "text": "month A zero-based numeric value for the month (0 for January, 11 for December). Must be specified if numDate is specified."
+            },
+            {
+              "name": "param",
+              "text": "date A numeric value equal for the day of the month."
+            }
+          ],
+          "docs": "Sets the year of the Date object using local time.",
+          "complexTypes": [],
+          "slug": "setfullyear"
+        },
+        {
+          "name": "setUTCFullYear",
+          "signature": "(year: number, month?: number | undefined, date?: number | undefined) => number",
+          "parameters": [
+            {
+              "name": "year",
+              "docs": "A numeric value equal to the year.",
+              "type": "number"
+            },
+            {
+              "name": "month",
+              "docs": "A numeric value equal to the month. The value for January is 0, and other month values follow consecutively. Must be supplied if numDate is supplied.",
+              "type": "number | undefined"
+            },
+            {
+              "name": "date",
+              "docs": "A numeric value equal to the day of the month.",
+              "type": "number | undefined"
+            }
+          ],
+          "returns": "number",
+          "tags": [
+            {
+              "name": "param",
+              "text": "year A numeric value equal to the year."
+            },
+            {
+              "name": "param",
+              "text": "month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively. Must be supplied if numDate is supplied."
+            },
+            {
+              "name": "param",
+              "text": "date A numeric value equal to the day of the month."
+            }
+          ],
+          "docs": "Sets the year value in the Date object using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "setutcfullyear"
+        },
+        {
+          "name": "toUTCString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a date converted to a string using Universal Coordinated Time (UTC).",
+          "complexTypes": [],
+          "slug": "toutcstring"
+        },
+        {
+          "name": "toISOString",
+          "signature": "() => string",
+          "parameters": [],
+          "returns": "string",
+          "tags": [],
+          "docs": "Returns a date as a string value in ISO format.",
+          "complexTypes": [],
+          "slug": "toisostring"
+        },
+        {
+          "name": "toJSON",
+          "signature": "(key?: any) => string",
+          "parameters": [
+            {
+              "name": "key",
+              "docs": "",
+              "type": "any"
+            }
+          ],
+          "returns": "string",
+          "tags": [],
+          "docs": "Used by the JSON.stringify method to enable the transformation of an object's data for JavaScript Object Notation (JSON) serialization.",
+          "complexTypes": [],
+          "slug": "tojson"
+        }
+      ],
+      "properties": []
+    },
+    {
+      "name": "ScheduleOptions",
+      "slug": "scheduleoptions",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "notifications",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "LocalNotification"
+          ],
+          "type": "LocalNotification[]"
+        }
+      ]
+    },
+    {
+      "name": "NotificationChannel",
+      "slug": "notificationchannel",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "id",
+          "tags": [],
+          "docs": "Unique identifier for the channel",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "tags": [],
+          "docs": "Name of the channel (visible to users)",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "tags": [],
+          "docs": "Description of the channel",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "importance",
+          "tags": [],
+          "docs": "Importance level for notifications in this channel",
+          "complexTypes": [],
+          "type": "'default' | 'high' | 'low' | 'min' | undefined"
+        },
+        {
+          "name": "vibration",
+          "tags": [],
+          "docs": "Enable vibration for notifications in this channel",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "vibrationPattern",
+          "tags": [],
+          "docs": "Vibration pattern (array of milliseconds)",
+          "complexTypes": [],
+          "type": "number[] | undefined"
+        },
+        {
+          "name": "lights",
+          "tags": [],
+          "docs": "Enable LED light for notifications",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "lightColor",
+          "tags": [],
+          "docs": "LED light color (hex color string)",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "sound",
+          "tags": [],
+          "docs": "Sound for notifications in this channel",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    }
+  ],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}
