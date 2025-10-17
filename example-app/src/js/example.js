@@ -76,8 +76,10 @@ window.scheduleRideshareNotification = async () => {
                 progressStyle: {
                     progress: 200,
                     maxProgress: 1000,
-                    styledByProgress: false,
+                    styledByProgress: true,
                     trackerIcon: 'ic_car',
+                    startIcon: 'ic_location_start',
+                    endIcon: 'ic_location_end',
                     segments: [
                         { length: 100, color: '#4CAF50' },  // Verde - sin tráfico
                         { length: 300, color: '#FF9800' },  // Amarillo - tráfico lento
@@ -97,7 +99,7 @@ window.scheduleRideshareNotification = async () => {
                 ]
             }]
         });
-        showStatus('Notificación de rideshare programada');
+        showStatus('Notificación de rideshare programada con segments y points');
     } catch (error) {
         showStatus('Error: ' + error.message);
     }
@@ -212,6 +214,30 @@ window.simulateDownload = async () => {
         showStatus('Descarga simulada completada');
     } catch (error) {
         showStatus('Error en descarga: ' + error.message);
+    }
+};
+
+// Notificación con progreso indeterminado
+window.scheduleIndeterminateNotification = async () => {
+    try {
+        await ModernNotifications.schedule({
+            notifications: [{
+                id: notificationId++,
+                title: 'Conectando al servidor',
+                body: 'Estableciendo conexión segura...',
+                ongoing: true,
+                progressStyle: {
+                    indeterminate: true,
+                    styledByProgress: true,
+                    segments: [
+                        { length: 100, color: '#9C27B0' }  // Purple for indeterminate state
+                    ]
+                }
+            }]
+        });
+        showStatus('Notificación indeterminada programada');
+    } catch (error) {
+        showStatus('Error: ' + error.message);
     }
 };
 

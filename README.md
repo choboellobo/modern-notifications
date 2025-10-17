@@ -303,7 +303,10 @@ Update segments in a progress-centric notification
 | **`styledByProgress`** | <code>boolean</code>                | Whether the progress bar should be styled by progress value |
 | **`progress`**         | <code>number</code>                 | Current progress value                                      |
 | **`maxProgress`**      | <code>number</code>                 | Maximum progress value (default: 100)                       |
+| **`indeterminate`**    | <code>boolean</code>                | Whether the progress is indeterminate (for loading states)  |
 | **`trackerIcon`**      | <code>string</code>                 | Icon resource name for the progress tracker                 |
+| **`startIcon`**        | <code>string</code>                 | Icon resource name for the start of the progress bar        |
+| **`endIcon`**          | <code>string</code>                 | Icon resource name for the end of the progress bar          |
 | **`segments`**         | <code>ProgressStyleSegment[]</code> | Array of segments for the progress bar                      |
 | **`points`**           | <code>ProgressStylePoint[]</code>   | Array of points on the progress bar                         |
 

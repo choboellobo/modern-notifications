@@ -57,9 +57,21 @@ export interface ProgressStyleOptions {
      */
     maxProgress?: number;
     /**
+     * Whether the progress is indeterminate (for loading states)
+     */
+    indeterminate?: boolean;
+    /**
      * Icon resource name for the progress tracker
      */
     trackerIcon?: string;
+    /**
+     * Icon resource name for the start of the progress bar
+     */
+    startIcon?: string;
+    /**
+     * Icon resource name for the end of the progress bar
+     */
+    endIcon?: string;
     /**
      * Array of segments for the progress bar
      */

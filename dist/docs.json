@@ -478,9 +478,30 @@
           "type": "number | undefined"
         },
         {
+          "name": "indeterminate",
+          "tags": [],
+          "docs": "Whether the progress is indeterminate (for loading states)",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
           "name": "trackerIcon",
           "tags": [],
           "docs": "Icon resource name for the progress tracker",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "startIcon",
+          "tags": [],
+          "docs": "Icon resource name for the start of the progress bar",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "endIcon",
+          "tags": [],
+          "docs": "Icon resource name for the end of the progress bar",
           "complexTypes": [],
           "type": "string | undefined"
         },

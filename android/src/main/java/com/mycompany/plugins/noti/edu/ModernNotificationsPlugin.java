@@ -1,6 +1,7 @@
 package com.mycompany.plugins.noti.edu;
 
 import android.Manifest;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
@@ -27,7 +29,9 @@ import com.getcapacitor.annotation.PermissionCallback;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -246,34 +250,167 @@ public class ModernNotificationsPlugin extends Plugin {
     }
 
     private void addProgressStyle(NotificationCompat.Builder builder, JSObject progressStyle) {
-        if (Build.VERSION.SDK_INT >= 35) { // Android 16
+        if (Build.VERSION.SDK_INT >= 36) { // Android API level 36
             try {
-                // This is a placeholder for Android 16 Progress Style implementation
-                // The actual implementation would use android.app.Notification.ProgressStyle
-                // which is only available in Android 16+
-                
+                // Use the official Android 16 Notification.ProgressStyle API
                 int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
-                int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
-                boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : false;
+                boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : true;
                 
-                // For now, use standard progress bar as fallback
-                builder.setProgress(maxProgress, progress, false);
+                // Create ProgressStyle instance
+                Notification.ProgressStyle ps = new Notification.ProgressStyle()
+                    .setStyledByProgress(styledByProgress)
+                    .setProgress(progress);
                 
-                // TODO: Implement actual ProgressStyle when Android 16 SDK is available
-                // var ps = new Notification.ProgressStyle()
-                //     .setStyledByProgress(styledByProgress)
-                //     .setProgress(progress);
+                // Add tracker icon if provided
+                if (progressStyle.has("trackerIcon")) {
+                    String iconName = progressStyle.getString("trackerIcon");
+                    if (iconName != null) {
+                        int iconRes = getContext().getResources().getIdentifier(
+                            iconName, "drawable", getContext().getPackageName()
+                        );
+                        if (iconRes != 0) {
+                            Icon trackerIcon = Icon.createWithResource(getContext(), iconRes);
+                            ps.setProgressTrackerIcon(trackerIcon);
+                        }
+                    }
+                }
                 
-                // Add segments and points when SDK is available
-                // JSArray segments = progressStyle.getJSArray("segments");
-                // JSArray points = progressStyle.getJSArray("points");
+                // Add start icon if provided
+                if (progressStyle.has("startIcon")) {
+                    String iconName = progressStyle.getString("startIcon");
+                    if (iconName != null) {
+                        int iconRes = getContext().getResources().getIdentifier(
+                            iconName, "drawable", getContext().getPackageName()
+                        );
+                        if (iconRes != 0) {
+                            Icon startIcon = Icon.createWithResource(getContext(), iconRes);
+                            ps.setProgressStartIcon(startIcon);
+                        }
+                    }
+                }
+                
+                // Add end icon if provided
+                if (progressStyle.has("endIcon")) {
+                    String iconName = progressStyle.getString("endIcon");
+                    if (iconName != null) {
+                        int iconRes = getContext().getResources().getIdentifier(
+                            iconName, "drawable", getContext().getPackageName()
+                        );
+                        if (iconRes != 0) {
+                            Icon endIcon = Icon.createWithResource(getContext(), iconRes);
+                            ps.setProgressEndIcon(endIcon);
+                        }
+                    }
+                }
+                
+                // Add segments if provided
+                if (progressStyle.has("segments")) {
+                    try {
+                        JSONArray segmentsJSON = progressStyle.getJSONArray("segments");
+                        if (segmentsJSON != null && segmentsJSON.length() > 0) {
+                            for (int i = 0; i < segmentsJSON.length(); i++) {
+                                JSONObject segmentJSON = segmentsJSON.optJSONObject(i);
+                                if (segmentJSON != null) {
+                                    JSObject segment = JSObject.fromJSONObject(segmentJSON);
+                                    int length = segment.has("length") ? segment.getInteger("length") : 100;
+                                    
+                                    Notification.ProgressStyle.Segment seg = new Notification.ProgressStyle.Segment(length);
+                                    
+                                    // Set color if provided
+                                    if (segment.has("color")) {
+                                        String colorStr = segment.getString("color");
+                                        if (colorStr != null) {
+                                            try {
+                                                int color = Color.parseColor(colorStr);
+                                                seg.setColor(color);
+                                            } catch (IllegalArgumentException e) {
+                                                Log.w(TAG, "Invalid color format: " + colorStr);
+                                            }
+                                        }
+                                    }
+                                    
+                                    ps.addProgressSegment(seg);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing progress segments", e);
+                    }
+                }
+                
+                // Add points if provided
+                if (progressStyle.has("points")) {
+                    try {
+                        JSONArray pointsJSON = progressStyle.getJSONArray("points");
+                        if (pointsJSON != null && pointsJSON.length() > 0) {
+                            for (int i = 0; i < pointsJSON.length(); i++) {
+                                JSONObject pointJSON = pointsJSON.optJSONObject(i);
+                                if (pointJSON != null) {
+                                    JSObject point = JSObject.fromJSONObject(pointJSON);
+                                    int position = point.has("position") ? point.getInteger("position") : 0;
+                                    
+                                    Notification.ProgressStyle.Point pt = new Notification.ProgressStyle.Point(position);
+                                    
+                                    // Set color if provided
+                                    if (point.has("color")) {
+                                        String colorStr = point.getString("color");
+                                        if (colorStr != null) {
+                                            try {
+                                                int color = Color.parseColor(colorStr);
+                                                pt.setColor(color);
+                                            } catch (IllegalArgumentException e) {
+                                                Log.w(TAG, "Invalid color format: " + colorStr);
+                                            }
+                                        }
+                                    }
+                                    
+                                    ps.addProgressPoint(pt);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing progress points", e);
+                    }
+                }
+                
+                // Handle indeterminate progress
+                if (progressStyle.has("indeterminate")) {
+                    boolean indeterminate = progressStyle.getBool("indeterminate");
+                    ps.setProgressIndeterminate(indeterminate);
+                }
+                
+                // Apply the ProgressStyle to the notification
+                // Note: We need to build the notification with the native Android API for ProgressStyle
+                Notification notification = new Notification.Builder(getContext(), DEFAULT_CHANNEL_ID)
+                    .setContentTitle(builder.build().extras.getString(Notification.EXTRA_TITLE))
+                    .setContentText(builder.build().extras.getString(Notification.EXTRA_TEXT))
+                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setStyle(ps)
+                    .setOngoing(true) // Make it ongoing for progress notifications
+                    .build();
+                
+                // Get notification manager and show the notification
+                NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notificationManager != null) {
+                    int notificationId = progressStyle.has("id") ? progressStyle.getInteger("id") : (int) System.currentTimeMillis();
+                    notificationManager.notify(notificationId, notification);
+                }
+                
+                Log.i(TAG, "Successfully created Progress-centric notification with segments and points");
                 
             } catch (Exception e) {
+                Log.e(TAG, "Error creating ProgressStyle notification, falling back to standard progress", e);
                 // Fallback to standard progress
                 int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
                 int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
                 builder.setProgress(maxProgress, progress, false);
             }
+        } else {
+            // Fallback for older Android versions
+            int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+            int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
+            builder.setProgress(maxProgress, progress, false);
+            Log.i(TAG, "Using standard progress bar (Android < 16, API level < 36)");
         }
     }
 
