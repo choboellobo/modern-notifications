@@ -148,10 +148,10 @@ public class ModernNotificationsPlugin extends Plugin {
     }
 
     private void scheduleNotification(JSObject notification) {
-        int id = notification.getInteger("id", 0);
-        String title = notification.getString("title", "");
-        String body = notification.getString("body", "");
-        String channelId = notification.getString("channelId", DEFAULT_CHANNEL_ID);
+        int id = notification.has("id") ? notification.getInteger("id") : 0;
+        String title = notification.has("title") ? notification.getString("title") : "";
+        String body = notification.has("body") ? notification.getString("body") : "";
+        String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
         
         scheduledNotifications.put(id, notification);
 
@@ -175,12 +175,13 @@ public class ModernNotificationsPlugin extends Plugin {
     }
 
     private NotificationCompat.Builder createNotificationBuilder(JSObject notification, String channelId) {
-        String title = notification.getString("title", "");
-        String body = notification.getString("body", "");
+        String title = notification.has("title") ? notification.getString("title") : "";
+        String body = notification.has("body") ? notification.getString("body") : "";
         String subText = notification.getString("subText");
-        boolean autoCancel = notification.getBool("autoCancel", true);
-        boolean ongoing = notification.getBool("ongoing", false);
-        int priority = getNotificationPriority(notification.getString("priority", "normal"));
+        boolean autoCancel = notification.has("autoCancel") ? notification.getBool("autoCancel") : true;
+        boolean ongoing = notification.has("ongoing") ? notification.getBool("ongoing") : false;
+        String priorityStr = notification.has("priority") ? notification.getString("priority") : "normal";
+        int priority = getNotificationPriority(priorityStr);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), channelId)
             .setContentTitle(title)
@@ -236,9 +237,9 @@ public class ModernNotificationsPlugin extends Plugin {
                 // The actual implementation would use android.app.Notification.ProgressStyle
                 // which is only available in Android 16+
                 
-                int progress = progressStyle.getInteger("progress", 0);
-                int maxProgress = progressStyle.getInteger("maxProgress", 100);
-                boolean styledByProgress = progressStyle.getBool("styledByProgress", false);
+                int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+                int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
+                boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : false;
                 
                 // For now, use standard progress bar as fallback
                 builder.setProgress(maxProgress, progress, false);
@@ -254,8 +255,8 @@ public class ModernNotificationsPlugin extends Plugin {
                 
             } catch (Exception e) {
                 // Fallback to standard progress
-                int progress = progressStyle.getInteger("progress", 0);
-                int maxProgress = progressStyle.getInteger("maxProgress", 100);
+                int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+                int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
                 builder.setProgress(maxProgress, progress, false);
             }
         }
@@ -355,7 +356,7 @@ public class ModernNotificationsPlugin extends Plugin {
                 JSONObject jsonObj = notifications.optJSONObject(i);
                 if (jsonObj != null) {
                     JSObject notification = JSObject.fromJSONObject(jsonObj);
-                    int id = notification.getInteger("id", 0);
+                    int id = notification.has("id") ? notification.getInteger("id") : 0;
                     notificationManager.cancel(id);
                     scheduledNotifications.remove(id);
                 }
@@ -386,7 +387,7 @@ public class ModernNotificationsPlugin extends Plugin {
                 JSONObject jsonObj = notifications.optJSONObject(i);
                 if (jsonObj != null) {
                     JSObject notification = JSObject.fromJSONObject(jsonObj);
-                    int id = notification.getInteger("id", 0);
+                    int id = notification.has("id") ? notification.getInteger("id") : 0;
                     deliveredNotifications.remove(id);
                 }
             }
@@ -408,7 +409,7 @@ public class ModernNotificationsPlugin extends Plugin {
             String id = call.getString("id");
             String name = call.getString("name");
             String description = call.getString("description");
-            String importance = call.getString("importance", "default");
+            String importance = call.has("importance") ? call.getString("importance") : "default";
 
             if (id == null || name == null) {
                 call.reject("Must provide id and name for channel");
