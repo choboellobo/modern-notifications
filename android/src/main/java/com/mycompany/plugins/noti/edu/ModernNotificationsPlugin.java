@@ -159,7 +159,7 @@ public class ModernNotificationsPlugin extends Plugin {
         NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId);
         
         // Add Progress Style for Android 16+
-        if (Build.VERSION.SDK_INT >= 35 && notification.has("progressStyle")) { // Android 16 is API 35
+        if (Build.VERSION.SDK_INT >= 35 && notification.has("progressStyle")) { // Android 16 is API 35 xxx
             JSObject progressStyle = notification.getJSObject("progressStyle");
             if (progressStyle != null) {
                 addProgressStyle(builder, progressStyle);
