@@ -23,6 +23,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,8 +123,9 @@ public class ModernNotificationsPlugin extends Plugin {
         try {
             for (int i = 0; i < notifications.length(); i++) {
                 try {
-                    JSObject notification = notifications.optJSObject(i);
-                    if (notification != null) {
+                    org.json.JSONObject jsonObj = notifications.optJSONObject(i);
+                    if (jsonObj != null) {
+                        JSObject notification = JSObject.fromJSONObject(jsonObj);
                         scheduleNotification(notification);
                         scheduled.add(notification);
                     }
@@ -258,8 +261,9 @@ public class ModernNotificationsPlugin extends Plugin {
     private void addActionsToBuilder(NotificationCompat.Builder builder, JSArray actions) {
         try {
             for (int i = 0; i < actions.length(); i++) {
-                JSObject action = actions.optJSObject(i);
-                if (action != null) {
+                JSONObject jsonObj = actions.optJSONObject(i);
+                if (jsonObj != null) {
+                    JSObject action = JSObject.fromJSONObject(jsonObj);
                     String actionId = action.getString("id");
                     String actionTitle = action.getString("title");
                     
@@ -345,8 +349,9 @@ public class ModernNotificationsPlugin extends Plugin {
 
         try {
             for (int i = 0; i < notifications.length(); i++) {
-                JSObject notification = notifications.optJSObject(i);
-                if (notification != null) {
+                JSONObject jsonObj = notifications.optJSONObject(i);
+                if (jsonObj != null) {
+                    JSObject notification = JSObject.fromJSONObject(jsonObj);
                     int id = notification.getInteger("id", 0);
                     notificationManager.cancel(id);
                     scheduledNotifications.remove(id);
@@ -375,8 +380,9 @@ public class ModernNotificationsPlugin extends Plugin {
 
         try {
             for (int i = 0; i < notifications.length(); i++) {
-                JSObject notification = notifications.optJSObject(i);
-                if (notification != null) {
+                JSONObject jsonObj = notifications.optJSONObject(i);
+                if (jsonObj != null) {
+                    JSObject notification = JSObject.fromJSONObject(jsonObj);
                     int id = notification.getInteger("id", 0);
                     deliveredNotifications.remove(id);
                 }
