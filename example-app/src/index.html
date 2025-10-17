@@ -2,24 +2,263 @@
 <html lang="en" dir="ltr" class="hydrated">
   <head>
     <meta charset="UTF-8" />
-    <title>Example Capacitor App</title>
+    <title>Modern Notifications Example</title>
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="format-detection" content="telephone=no" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+      }
+      
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
+      
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      .section {
+        margin: 30px 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .section h2 {
+        margin-top: 0;
+        color: #FFD700;
+        font-size: 1.5rem;
+      }
+      
+      .section p {
+        margin: 10px 0;
+        opacity: 0.9;
+        line-height: 1.6;
+      }
+      
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      button {
+        background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+        border: none;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+      
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      }
+      
+      button:active {
+        transform: translateY(0);
+      }
+      
+      .progress-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+      }
+      
+      .action-btn {
+        background: linear-gradient(45deg, #f093fb, #f5576c);
+      }
+      
+      .status {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .status h3 {
+        margin-top: 0;
+        color: #90EE90;
+      }
+      
+      .status p {
+        margin: 5px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        opacity: 0.8;
+      }
+      
+      .feature-badge {
+        display: inline-block;
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 5px 5px 5px 0;
+      }
+      
+      .android16-badge {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+      }
+      
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+        }
+        
+        h1 {
+          font-size: 2rem;
+        }
+        
+        .button-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <main>
-      <h1>Capacitor Test Plugin Project</h1>
-      <p>
-        This project can be used to test out the functionality of your plugin. Nothing in the
-        <em>example-app/</em> folder will be published to npm when using this template, so you can create away!
+    <div class="container">
+      <h1>🚀 Modern Notifications</h1>
+      <p style="text-align: center; font-size: 1.2rem; opacity: 0.9;">
+        Plugin de Capacitor para notificaciones locales con soporte para 
+        <strong>Progress-centric notifications</strong> de Android 16
       </p>
-      <label for="echoInput">Echo Text:</label>
-      <input type="text" id="echoInput" name="echoInput" value="Hello World!" />
-      <button onclick="testEcho()">Click Me!</button>
-    </main>
+
+      <div class="section">
+        <h2>📱 Notificaciones Básicas</h2>
+        <p>Prueba las funcionalidades básicas de notificaciones locales.</p>
+        <div class="button-grid">
+          <button onclick="scheduleBasicNotification()">
+            📨 Notificación Simple
+          </button>
+          <button onclick="scheduleDelayedNotification()">
+            ⏰ Programada (10s)
+          </button>
+          <button onclick="getPendingNotifications()">
+            📋 Ver Pendientes
+          </button>
+          <button onclick="getDeliveredNotifications()">
+            ✅ Ver Entregadas
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🚗 Progress-centric Notifications</h2>
+        <span class="feature-badge android16-badge">Android 16+</span>
+        <span class="feature-badge">Rideshare</span>
+        <span class="feature-badge">Delivery</span>
+        <span class="feature-badge">Navigation</span>
+        <p>Experimenta las nuevas notificaciones de progreso de Android 16 con seguimiento en tiempo real.</p>
+        <div class="button-grid">
+          <button class="progress-btn" onclick="scheduleRideshareNotification()">
+            🚖 Viaje (Rideshare)
+          </button>
+          <button class="progress-btn" onclick="scheduleFoodDeliveryNotification()">
+            🍕 Entrega de Comida
+          </button>
+          <button class="progress-btn" onclick="updateRideshareProgress()">
+            📍 Actualizar Progreso
+          </button>
+          <button class="progress-btn" onclick="simulateDownload()">
+            ⬇️ Simular Descarga
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>⚙️ Gestión y Configuración</h2>
+        <p>Administra canales de notificación y configuraciones avanzadas.</p>
+        <div class="button-grid">
+          <button class="action-btn" onclick="listChannels()">
+            📻 Listar Canales
+          </button>
+          <button class="action-btn" onclick="cancelAllNotifications()">
+            🧹 Limpiar Todo
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>✨ Características Principales</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #FFD700;">🎯 Segments & Points</h4>
+            <p style="margin: 0; font-size: 14px;">Control granular del progreso visual con segmentos de colores y puntos de interés.</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #FFD700;">🚗 Tracker Icons</h4>
+            <p style="margin: 0; font-size: 14px;">Iconos personalizados para el seguimiento (vehículos, iconos de estado).</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #FFD700;">🎨 Styled Progress</h4>
+            <p style="margin: 0; font-size: 14px;">Barras de progreso que cambian de color automáticamente según el avance.</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #FFD700;">⚡ Tiempo Real</h4>
+            <p style="margin: 0; font-size: 14px;">Actualizaciones en tiempo real del progreso y condiciones del viaje.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>💡 Casos de Uso</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+          <div style="background: rgba(76, 175, 80, 0.2); padding: 15px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+            <h4 style="margin: 0 0 10px 0;">🚖 Rideshare</h4>
+            <p style="margin: 0; font-size: 14px;">Seguimiento de viajes con condiciones de tráfico en tiempo real.</p>
+          </div>
+          <div style="background: rgba(255, 152, 0, 0.2); padding: 15px; border-radius: 10px; border-left: 4px solid #FF9800;">
+            <h4 style="margin: 0 0 10px 0;">🍕 Delivery</h4>
+            <p style="margin: 0; font-size: 14px;">Estados de preparación y entrega de pedidos de comida.</p>
+          </div>
+          <div style="background: rgba(33, 150, 243, 0.2); padding: 15px; border-radius: 10px; border-left: 4px solid #2196F3;">
+            <h4 style="margin: 0 0 10px 0;">🧭 Navigation</h4>
+            <p style="margin: 0; font-size: 14px;">Navegación GPS con puntos de interés y rutas alternativas.</p>
+          </div>
+          <div style="background: rgba(156, 39, 176, 0.2); padding: 15px; border-radius: 10px; border-left: 4px solid #9C27B0;">
+            <h4 style="margin: 0 0 10px 0;">⬇️ Downloads</h4>
+            <p style="margin: 0; font-size: 14px;">Progreso de descargas con información detallada del archivo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="status">
+        <h3>📊 Estado y Eventos</h3>
+        <div id="status">
+          <p>✅ Plugin cargado y listo para usar</p>
+        </div>
+      </div>
+    </div>
 
     <script src="./js/example.js" type="module"></script>
   </body>
