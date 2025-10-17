@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
+import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -22,6 +23,12 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -41,6 +48,7 @@ import java.util.Map;
 )
 public class ModernNotificationsPlugin extends Plugin {
 
+    private static final String TAG = "ModernNotifications";
     private ModernNotifications implementation = new ModernNotifications();
     private NotificationManagerCompat notificationManager;
     private Map<Integer, JSObject> scheduledNotifications = new HashMap<>();
@@ -222,9 +230,16 @@ public class ModernNotificationsPlugin extends Plugin {
         }
 
         // Add actions if provided
-        JSArray actions = notification.getJSArray("actions");
-        if (actions != null) {
-            addActionsToBuilder(builder, actions);
+        if (notification.has("actions")) {
+            try {
+                JSONArray actionsJSON = notification.getJSONArray("actions");
+                if (actionsJSON != null) {
+                    JSArray actions = JSArray.from(actionsJSON);
+                    addActionsToBuilder(builder, actions);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing notification actions", e);
+            }
         }
 
         return builder;
@@ -406,12 +421,10 @@ public class ModernNotificationsPlugin extends Plugin {
     @PluginMethod
     public void createChannel(PluginCall call) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String id = call.getString("id");
-            String name = call.getString("name");
-            String description = call.getString("description");
-            String importance = call.has("importance") ? call.getString("importance") : "default";
-
-            if (id == null || name == null) {
+        String id = call.getString("id");
+        String name = call.getString("name");
+        String description = call.getString("description");
+        String importance = call.getData().has("importance") ? call.getString("importance") : "default";            if (id == null || name == null) {
                 call.reject("Must provide id and name for channel");
                 return;
             }
@@ -477,7 +490,7 @@ public class ModernNotificationsPlugin extends Plugin {
     public void updateProgress(PluginCall call) {
         int id = call.getInt("id", 0);
         int progress = call.getInt("progress", 0);
-        JSObject progressStyle = call.getJSObject("progressStyle");
+        JSObject progressStyle = call.getObject("progressStyle");
 
         JSObject notification = deliveredNotifications.get(id);
         if (notification != null) {
@@ -507,14 +520,28 @@ public class ModernNotificationsPlugin extends Plugin {
         if (notification != null && points != null) {
             JSObject progressStyle = notification.getJSObject("progressStyle");
             if (progressStyle != null) {
-                JSArray currentPoints = progressStyle.getJSArray("points");
+                JSArray currentPoints = null;
+                if (progressStyle.has("points")) {
+                    try {
+                        JSONArray pointsJSON = progressStyle.getJSONArray("points");
+                        if (pointsJSON != null) {
+                            currentPoints = JSArray.from(pointsJSON);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing progress points", e);
+                    }
+                }
                 if (currentPoints == null) {
                     currentPoints = new JSArray();
                 }
                 
                 // Add new points
-                for (int i = 0; i < points.length(); i++) {
-                    currentPoints.put(points.get(i));
+                try {
+                    for (int i = 0; i < points.length(); i++) {
+                        currentPoints.put(points.get(i));
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error adding progress points", e);
                 }
                 
                 progressStyle.put("points", currentPoints);
