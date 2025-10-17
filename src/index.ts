@@ -1,10 +1,10 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { ExamplePlugin } from './definitions';
+import type { ModernNotificationsPlugin } from './definitions';
 
-const Example = registerPlugin<ExamplePlugin>('Example', {
-  web: () => import('./web').then((m) => new m.ExampleWeb()),
+const ModernNotifications = registerPlugin<ModernNotificationsPlugin>('ModernNotifications', {
+  web: () => import('./web').then((m) => new m.ModernNotificationsWeb()),
 });
 
 export * from './definitions';
-export { Example };
+export { ModernNotifications };
