@@ -120,10 +120,15 @@ public class ModernNotificationsPlugin extends Plugin {
         
         try {
             for (int i = 0; i < notifications.length(); i++) {
-                JSObject notification = notifications.getJSObject(i);
-                if (notification != null) {
-                    scheduleNotification(notification);
-                    scheduled.add(notification);
+                try {
+                    JSObject notification = notifications.optJSObject(i);
+                    if (notification != null) {
+                        scheduleNotification(notification);
+                        scheduled.add(notification);
+                    }
+                } catch (Exception e) {
+                    // Skip invalid notification objects
+                    continue;
                 }
             }
 
@@ -152,7 +157,7 @@ public class ModernNotificationsPlugin extends Plugin {
         
         // Add Progress Style for Android 16+
         if (Build.VERSION.SDK_INT >= 35 && notification.has("progressStyle")) { // Android 16 is API 35
-            addProgressStyle(builder, notification.getJSObject("progressStyle"));
+            addProgressStyle(builder, notification.optJSObject("progressStyle"));
         }
 
         // Schedule immediately for now (could be enhanced for delayed scheduling)
@@ -190,12 +195,27 @@ public class ModernNotificationsPlugin extends Plugin {
                 largeIcon, "drawable", getContext().getPackageName()
             );
             if (iconRes != 0) {
-                builder.setLargeIcon(ContextCompat.getDrawable(getContext(), iconRes).getBitmap());
+                try {
+                    android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(getContext(), iconRes);
+                    if (drawable != null) {
+                        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                            drawable.getIntrinsicWidth(),
+                            drawable.getIntrinsicHeight(),
+                            android.graphics.Bitmap.Config.ARGB_8888
+                        );
+                        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+                        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                        drawable.draw(canvas);
+                        builder.setLargeIcon(bitmap);
+                    }
+                } catch (Exception e) {
+                    // Ignore icon errors
+                }
             }
         }
 
         // Add actions if provided
-        JSArray actions = notification.getJSArray("actions");
+        JSArray actions = notification.optJSArray("actions");
         if (actions != null) {
             addActionsToBuilder(builder, actions);
         }
@@ -238,7 +258,7 @@ public class ModernNotificationsPlugin extends Plugin {
     private void addActionsToBuilder(NotificationCompat.Builder builder, JSArray actions) {
         try {
             for (int i = 0; i < actions.length(); i++) {
-                JSObject action = actions.getJSObject(i);
+                JSObject action = actions.optJSObject(i);
                 if (action != null) {
                     String actionId = action.getString("id");
                     String actionTitle = action.getString("title");
@@ -325,7 +345,7 @@ public class ModernNotificationsPlugin extends Plugin {
 
         try {
             for (int i = 0; i < notifications.length(); i++) {
-                JSObject notification = notifications.getJSObject(i);
+                JSObject notification = notifications.optJSObject(i);
                 if (notification != null) {
                     int id = notification.getInteger("id", 0);
                     notificationManager.cancel(id);
@@ -355,7 +375,7 @@ public class ModernNotificationsPlugin extends Plugin {
 
         try {
             for (int i = 0; i < notifications.length(); i++) {
-                JSObject notification = notifications.getJSObject(i);
+                JSObject notification = notifications.optJSObject(i);
                 if (notification != null) {
                     int id = notification.getInteger("id", 0);
                     deliveredNotifications.remove(id);
@@ -447,7 +467,7 @@ public class ModernNotificationsPlugin extends Plugin {
     public void updateProgress(PluginCall call) {
         int id = call.getInt("id", 0);
         int progress = call.getInt("progress", 0);
-        JSObject progressStyle = call.getJSObject("progressStyle");
+        JSObject progressStyle = call.optJSObject("progressStyle");
 
         JSObject notification = deliveredNotifications.get(id);
         if (notification != null) {
@@ -455,7 +475,7 @@ public class ModernNotificationsPlugin extends Plugin {
             if (progressStyle != null) {
                 notification.put("progressStyle", progressStyle);
             } else {
-                JSObject currentStyle = notification.getJSObject("progressStyle");
+                JSObject currentStyle = notification.optJSObject("progressStyle");
                 if (currentStyle != null) {
                     currentStyle.put("progress", progress);
                 }
@@ -475,9 +495,9 @@ public class ModernNotificationsPlugin extends Plugin {
 
         JSObject notification = deliveredNotifications.get(id);
         if (notification != null && points != null) {
-            JSObject progressStyle = notification.getJSObject("progressStyle");
+            JSObject progressStyle = notification.optJSObject("progressStyle");
             if (progressStyle != null) {
-                JSArray currentPoints = progressStyle.getJSArray("points");
+                JSArray currentPoints = progressStyle.optJSArray("points");
                 if (currentPoints == null) {
                     currentPoints = new JSArray();
                 }
@@ -502,7 +522,7 @@ public class ModernNotificationsPlugin extends Plugin {
 
         JSObject notification = deliveredNotifications.get(id);
         if (notification != null && segments != null) {
-            JSObject progressStyle = notification.getJSObject("progressStyle");
+            JSObject progressStyle = notification.optJSObject("progressStyle");
             if (progressStyle != null) {
                 progressStyle.put("segments", segments);
                 scheduleNotification(notification);
