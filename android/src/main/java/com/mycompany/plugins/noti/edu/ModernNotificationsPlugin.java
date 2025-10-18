@@ -239,11 +239,15 @@ public class ModernNotificationsPlugin extends Plugin {
     private void scheduleNotificationAlarm(JSObject notification, long scheduledTime) {
         int id = notification.has("id") ? notification.getInteger("id") : 0;
         
+        Log.d(TAG, "Setting up AlarmManager for notification " + id + " at " + scheduledTime);
+        
         AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
         
         Intent intent = new Intent(getContext(), ScheduledNotificationReceiver.class);
         intent.setAction(ScheduledNotificationReceiver.ACTION_SCHEDULED_NOTIFICATION);
         intent.putExtra("notificationData", notification.toString());
+        
+        Log.d(TAG, "Intent created with action: " + ScheduledNotificationReceiver.ACTION_SCHEDULED_NOTIFICATION);
         
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
             getContext(),
@@ -256,9 +260,14 @@ public class ModernNotificationsPlugin extends Plugin {
             // Use setExactAndAllowWhileIdle for better reliability
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, scheduledTime, pendingIntent);
+                Log.d(TAG, "AlarmManager.setExactAndAllowWhileIdle() called for notification " + id);
             } else {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, scheduledTime, pendingIntent);
+                Log.d(TAG, "AlarmManager.setExact() called for notification " + id);
             }
+            Log.d(TAG, "Notification " + id + " successfully scheduled for " + new java.util.Date(scheduledTime));
+        } else {
+            Log.e(TAG, "AlarmManager is null, cannot schedule notification");
         }
     }
 
@@ -292,11 +301,42 @@ public class ModernNotificationsPlugin extends Plugin {
 
     // Static method to show scheduled notification from receiver
     public static void showScheduledNotification(Context context, JSObject notification) {
+        Log.d(TAG, "showScheduledNotification called, instance: " + (instance != null ? "available" : "null"));
+        
         if (instance != null) {
             int id = notification.has("id") ? notification.getInteger("id") : 0;
             String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
             
+            Log.d(TAG, "Showing scheduled notification via instance: " + id);
             instance.showNotificationNow(notification, id, channelId);
+        } else {
+            // Fallback: show notification directly without plugin instance
+            Log.d(TAG, "Plugin instance not available, showing notification directly");
+            showNotificationDirectly(context, notification);
+        }
+    }
+    
+    // Fallback method to show notification without plugin instance
+    private static void showNotificationDirectly(Context context, JSObject notification) {
+        try {
+            int id = notification.has("id") ? notification.getInteger("id") : 0;
+            String title = notification.has("title") ? notification.getString("title") : "";
+            String body = notification.has("body") ? notification.getString("body") : "";
+            String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
+            
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setSmallIcon(android.R.drawable.ic_dialog_info) // Fallback icon
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true);
+            
+            notificationManager.notify(id, builder.build());
+            Log.d(TAG, "Scheduled notification shown directly: " + id);
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing scheduled notification directly", e);
         }
     }
 
