@@ -1,3 +1,4 @@
+import type { PluginListenerHandle } from '@capacitor/core';
 /**
  * Interface for Progress-centric notifications in Android 16
  */
@@ -42,6 +43,32 @@ export interface NotificationAction {
      * Whether the action requires authentication
      */
     requiresAuthentication?: boolean;
+}
+/**
+ * Event fired when a notification is received
+ */
+export interface LocalNotificationReceivedEvent {
+    /**
+     * The notification that was received
+     */
+    notification: LocalNotification;
+}
+/**
+ * Event fired when a notification action is performed
+ */
+export interface LocalNotificationActionPerformed {
+    /**
+     * The action that was performed
+     */
+    actionId: string;
+    /**
+     * The notification on which the action was performed
+     */
+    notification: LocalNotification;
+    /**
+     * Any additional data passed with the action
+     */
+    inputValue?: string;
 }
 export interface ProgressStyleOptions {
     /**
@@ -331,4 +358,16 @@ export interface ModernNotificationsPlugin {
         id: number;
         segments: ProgressStyleSegment[];
     }): Promise<void>;
+    /**
+     * Listen for when a notification is received
+     */
+    addListener(eventName: 'localNotificationReceived', listenerFunc: (event: LocalNotificationReceivedEvent) => void): Promise<PluginListenerHandle>;
+    /**
+     * Listen for when a notification action is performed
+     */
+    addListener(eventName: 'localNotificationActionPerformed', listenerFunc: (event: LocalNotificationActionPerformed) => void): Promise<PluginListenerHandle>;
+    /**
+     * Remove all listeners for this plugin
+     */
+    removeAllListeners(): Promise<void>;
 }

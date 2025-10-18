@@ -6,7 +6,6 @@ import type {
   NotificationResult,
   PermissionStatus,
   NotificationChannel,
-  ActionPerformed,
   ProgressStylePoint,
   ProgressStyleSegment,
   ProgressStyleOptions,
@@ -92,11 +91,19 @@ export class ModernNotificationsWeb extends WebPlugin implements ModernNotificat
     const webNotification = new Notification(notification.title, options);
     
     webNotification.onclick = () => {
-      this.notifyListeners('localNotificationReceived', {
+      // Notify action performed when clicked
+      this.notifyListeners('localNotificationActionPerformed', {
         notification,
         actionId: 'tap',
-      } as ActionPerformed);
+      });
       webNotification.close();
+    };
+
+    webNotification.onshow = () => {
+      // Notify when notification is received/shown
+      this.notifyListeners('localNotificationReceived', {
+        notification,
+      });
     };
 
     // Move to delivered
@@ -192,4 +199,6 @@ export class ModernNotificationsWeb extends WebPlugin implements ModernNotificat
       console.log('Progress segments updated (web implementation):', options);
     }
   }
+
+
 }

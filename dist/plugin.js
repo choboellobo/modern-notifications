@@ -73,11 +73,18 @@ var capacitorExample = (function (exports, core) {
             };
             const webNotification = new Notification(notification.title, options);
             webNotification.onclick = () => {
-                this.notifyListeners('localNotificationReceived', {
+                // Notify action performed when clicked
+                this.notifyListeners('localNotificationActionPerformed', {
                     notification,
                     actionId: 'tap',
                 });
                 webNotification.close();
+            };
+            webNotification.onshow = () => {
+                // Notify when notification is received/shown
+                this.notifyListeners('localNotificationReceived', {
+                    notification,
+                });
             };
             // Move to delivered
             this.deliveredNotifications.push(notification);

@@ -28,6 +28,9 @@ npx cap sync
 * [`updateProgress(...)`](#updateprogress)
 * [`addProgressPoints(...)`](#addprogresspoints)
 * [`updateProgressSegments(...)`](#updateprogresssegments)
+* [`addListener('localNotificationReceived', ...)`](#addlistenerlocalnotificationreceived-)
+* [`addListener('localNotificationActionPerformed', ...)`](#addlistenerlocalnotificationactionperformed-)
+* [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 
 </docgen-index>
@@ -244,6 +247,53 @@ Update segments in a progress-centric notification
 --------------------
 
 
+### addListener('localNotificationReceived', ...)
+
+```typescript
+addListener(eventName: 'localNotificationReceived', listenerFunc: (event: LocalNotificationReceivedEvent) => void) => Promise<PluginListenerHandle>
+```
+
+Listen for when a notification is received
+
+| Param              | Type                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'localNotificationReceived'</code>                                                                      |
+| **`listenerFunc`** | <code>(event: <a href="#localnotificationreceivedevent">LocalNotificationReceivedEvent</a>) =&gt; void</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('localNotificationActionPerformed', ...)
+
+```typescript
+addListener(eventName: 'localNotificationActionPerformed', listenerFunc: (event: LocalNotificationActionPerformed) => void) => Promise<PluginListenerHandle>
+```
+
+Listen for when a notification action is performed
+
+| Param              | Type                                                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'localNotificationActionPerformed'</code>                                                                   |
+| **`listenerFunc`** | <code>(event: <a href="#localnotificationactionperformed">LocalNotificationActionPerformed</a>) =&gt; void</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### removeAllListeners()
+
+```typescript
+removeAllListeners() => Promise<void>
+```
+
+Remove all listeners for this plugin
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -411,5 +461,32 @@ Enables basic storage and retrieval of dates and times.
 | **`lights`**           | <code>boolean</code>                               | Enable LED light for notifications                 |
 | **`lightColor`**       | <code>string</code>                                | LED light color (hex color string)                 |
 | **`sound`**            | <code>string</code>                                | Sound for notifications in this channel            |
+
+
+#### PluginListenerHandle
+
+| Prop         | Type                                      |
+| ------------ | ----------------------------------------- |
+| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
+
+
+#### LocalNotificationReceivedEvent
+
+Event fired when a notification is received
+
+| Prop               | Type                                                            | Description                        |
+| ------------------ | --------------------------------------------------------------- | ---------------------------------- |
+| **`notification`** | <code><a href="#localnotification">LocalNotification</a></code> | The notification that was received |
+
+
+#### LocalNotificationActionPerformed
+
+Event fired when a notification action is performed
+
+| Prop               | Type                                                            | Description                                        |
+| ------------------ | --------------------------------------------------------------- | -------------------------------------------------- |
+| **`actionId`**     | <code>string</code>                                             | The action that was performed                      |
+| **`notification`** | <code><a href="#localnotification">LocalNotification</a></code> | The notification on which the action was performed |
+| **`inputValue`**   | <code>string</code>                                             | Any additional data passed with the action         |
 
 </docgen-api>

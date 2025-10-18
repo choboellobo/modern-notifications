@@ -223,6 +223,64 @@
           "ProgressStyleSegment"
         ],
         "slug": "updateprogresssegments"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'localNotificationReceived', listenerFunc: (event: LocalNotificationReceivedEvent) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'localNotificationReceived'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(event: LocalNotificationReceivedEvent) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [],
+        "docs": "Listen for when a notification is received",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "LocalNotificationReceivedEvent"
+        ],
+        "slug": "addlistenerlocalnotificationreceived-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'localNotificationActionPerformed', listenerFunc: (event: LocalNotificationActionPerformed) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'localNotificationActionPerformed'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(event: LocalNotificationActionPerformed) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [],
+        "docs": "Listen for when a notification action is performed",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "LocalNotificationActionPerformed"
+        ],
+        "slug": "addlistenerlocalnotificationactionperformed-"
+      },
+      {
+        "name": "removeAllListeners",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "Remove all listeners for this plugin",
+        "complexTypes": [],
+        "slug": "removealllisteners"
       }
     ],
     "properties": []
@@ -1474,6 +1532,72 @@
           "name": "sound",
           "tags": [],
           "docs": "Sound for notifications in this channel",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "PluginListenerHandle",
+      "slug": "pluginlistenerhandle",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "remove",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "() => Promise<void>"
+        }
+      ]
+    },
+    {
+      "name": "LocalNotificationReceivedEvent",
+      "slug": "localnotificationreceivedevent",
+      "docs": "Event fired when a notification is received",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "notification",
+          "tags": [],
+          "docs": "The notification that was received",
+          "complexTypes": [
+            "LocalNotification"
+          ],
+          "type": "LocalNotification"
+        }
+      ]
+    },
+    {
+      "name": "LocalNotificationActionPerformed",
+      "slug": "localnotificationactionperformed",
+      "docs": "Event fired when a notification action is performed",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "actionId",
+          "tags": [],
+          "docs": "The action that was performed",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "notification",
+          "tags": [],
+          "docs": "The notification on which the action was performed",
+          "complexTypes": [
+            "LocalNotification"
+          ],
+          "type": "LocalNotification"
+        },
+        {
+          "name": "inputValue",
+          "tags": [],
+          "docs": "Any additional data passed with the action",
           "complexTypes": [],
           "type": "string | undefined"
         }
