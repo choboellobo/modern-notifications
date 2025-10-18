@@ -180,28 +180,20 @@ public class ModernNotificationsPlugin extends Plugin {
             JSObject schedule = notification.getJSObject("schedule");
             if (schedule != null && schedule.has("at")) {
                 try {
-                    long scheduledTime = 0;
-                    
-                    // Try to get as number first (JavaScript timestamp)
-                    if (schedule.get("at") instanceof Number) {
-                        scheduledTime = ((Number) schedule.get("at")).longValue();
-                    } else {
-                        // Try as string (ISO format)
-                        String atString = schedule.getString("at");
-                        if (atString != null) {
-                            scheduledTime = parseISODateTime(atString);
+                    String atString = schedule.getString("at");
+                    if (atString != null) {
+                        // Parse ISO date string (Capacitor converts JS Date objects to ISO strings)
+                        long scheduledTime = parseCapacitorDateString(atString);
+                        long currentTime = System.currentTimeMillis();
+                        
+                        if (scheduledTime > currentTime) {
+                            // Schedule for future
+                            scheduleNotificationAlarm(notification, scheduledTime);
+                            Log.d(TAG, "Notification " + id + " scheduled for " + scheduledTime + " (in " + (scheduledTime - currentTime) + "ms)");
+                            return;
+                        } else {
+                            Log.d(TAG, "Scheduled time " + scheduledTime + " is in the past, showing immediately");
                         }
-                    }
-                    
-                    long currentTime = System.currentTimeMillis();
-                    
-                    if (scheduledTime > currentTime) {
-                        // Schedule for future
-                        scheduleNotificationAlarm(notification, scheduledTime);
-                        Log.d(TAG, "Notification " + id + " scheduled for " + scheduledTime + " (in " + (scheduledTime - currentTime) + "ms)");
-                        return;
-                    } else {
-                        Log.d(TAG, "Scheduled time " + scheduledTime + " is in the past, showing immediately");
                     }
                 } catch (Exception e) {
                     Log.w(TAG, "Error parsing schedule time, showing immediately: " + e.getMessage(), e);
@@ -270,24 +262,29 @@ public class ModernNotificationsPlugin extends Plugin {
         }
     }
 
-    private long parseISODateTime(String isoString) {
+    private long parseCapacitorDateString(String dateString) throws Exception {
+        // Capacitor converts JavaScript Date objects to ISO format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        // This follows the same pattern as the official Local Notifications plugin
+        
+        Log.d(TAG, "Parsing date string: " + dateString);
+        
         try {
-            // First try to parse as timestamp (milliseconds since epoch)
-            return Long.parseLong(isoString);
-        } catch (NumberFormatException e) {
-            // If it's not a timestamp, try to parse as ISO date string
+            // First try with milliseconds
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+            return sdf.parse(dateString).getTime();
+        } catch (Exception e) {
+            // Try without milliseconds
             try {
-                java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-                dateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-                return dateFormat.parse(isoString).getTime();
-            } catch (Exception ex) {
-                // Try without milliseconds
+                SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                sdf2.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return sdf2.parse(dateString).getTime();
+            } catch (Exception e2) {
+                // Last attempt: try as timestamp number
                 try {
-                    java.text.SimpleDateFormat dateFormat2 = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                    dateFormat2.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-                    return dateFormat2.parse(isoString).getTime();
-                } catch (Exception ex2) {
-                    throw new IllegalArgumentException("Cannot parse date: " + isoString + ". Expected ISO format or timestamp.", ex2);
+                    return Long.parseLong(dateString);
+                } catch (NumberFormatException e3) {
+                    throw new Exception("Cannot parse date: " + dateString + ". Expected ISO format (yyyy-MM-ddTHH:mm:ss.SSSZ) or timestamp", e3);
                 }
             }
         }
