@@ -1,10 +1,12 @@
 package com.mycompany.plugins.noti.edu;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -36,6 +38,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -171,8 +174,46 @@ public class ModernNotificationsPlugin extends Plugin {
         
         // Store notification data for later use in events
         scheduledNotifications.put(id, notification);
-        
-        scheduledNotifications.put(id, notification);
+
+        // Check if notification should be scheduled for later
+        if (notification.has("schedule")) {
+            JSObject schedule = notification.getJSObject("schedule");
+            if (schedule != null && schedule.has("at")) {
+                try {
+                    long scheduledTime = 0;
+                    
+                    // Try to get as number first (JavaScript timestamp)
+                    if (schedule.get("at") instanceof Number) {
+                        scheduledTime = ((Number) schedule.get("at")).longValue();
+                    } else {
+                        // Try as string (ISO format)
+                        String atString = schedule.getString("at");
+                        if (atString != null) {
+                            scheduledTime = parseISODateTime(atString);
+                        }
+                    }
+                    
+                    long currentTime = System.currentTimeMillis();
+                    
+                    if (scheduledTime > currentTime) {
+                        // Schedule for future
+                        scheduleNotificationAlarm(notification, scheduledTime);
+                        Log.d(TAG, "Notification " + id + " scheduled for " + scheduledTime + " (in " + (scheduledTime - currentTime) + "ms)");
+                        return;
+                    } else {
+                        Log.d(TAG, "Scheduled time " + scheduledTime + " is in the past, showing immediately");
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "Error parsing schedule time, showing immediately: " + e.getMessage(), e);
+                }
+            }
+        }
+
+        // Show immediately if no valid future schedule
+        showNotificationNow(notification, id, channelId);
+    }
+
+    private void showNotificationNow(JSObject notification, int id, String channelId) {
 
         // Create notification with Android 16 Progress Style if available
         NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, id);
@@ -195,12 +236,71 @@ public class ModernNotificationsPlugin extends Plugin {
             }
         }
 
-        // Schedule immediately for now (could be enhanced for delayed scheduling)
+        // Show notification immediately
         notificationManager.notify(id, builder.build());
         
         // Move to delivered
         deliveredNotifications.put(id, notification);
         scheduledNotifications.remove(id);
+    }
+
+    private void scheduleNotificationAlarm(JSObject notification, long scheduledTime) {
+        int id = notification.has("id") ? notification.getInteger("id") : 0;
+        
+        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+        
+        Intent intent = new Intent(getContext(), ScheduledNotificationReceiver.class);
+        intent.setAction(ScheduledNotificationReceiver.ACTION_SCHEDULED_NOTIFICATION);
+        intent.putExtra("notificationData", notification.toString());
+        
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            getContext(),
+            id, // Use notification ID as request code
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        if (alarmManager != null) {
+            // Use setExactAndAllowWhileIdle for better reliability
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, scheduledTime, pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, scheduledTime, pendingIntent);
+            }
+        }
+    }
+
+    private long parseISODateTime(String isoString) {
+        try {
+            // First try to parse as timestamp (milliseconds since epoch)
+            return Long.parseLong(isoString);
+        } catch (NumberFormatException e) {
+            // If it's not a timestamp, try to parse as ISO date string
+            try {
+                java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                dateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return dateFormat.parse(isoString).getTime();
+            } catch (Exception ex) {
+                // Try without milliseconds
+                try {
+                    java.text.SimpleDateFormat dateFormat2 = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    dateFormat2.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                    return dateFormat2.parse(isoString).getTime();
+                } catch (Exception ex2) {
+                    throw new IllegalArgumentException("Cannot parse date: " + isoString + ". Expected ISO format or timestamp.", ex2);
+                }
+            }
+        }
+    }
+
+    // Static method to show scheduled notification from receiver
+    public static void showScheduledNotification(Context context, JSObject notification) {
+        if (instance != null) {
+            int id = notification.has("id") ? notification.getInteger("id") : 0;
+            String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
+            
+            instance.showNotificationNow(notification, id, channelId);
+        }
     }
 
     private NotificationCompat.Builder createNotificationBuilder(JSObject notification, String channelId, int notificationId) {

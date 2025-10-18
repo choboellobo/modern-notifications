@@ -8,5 +8,14 @@
                 <action android:name="com.mycompany.plugins.noti.edu.NOTIFICATION_ACTION" />
             </intent-filter>
         </receiver>
+        
+        <receiver 
+            android:name=".ScheduledNotificationReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.mycompany.plugins.noti.edu.SCHEDULED_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
