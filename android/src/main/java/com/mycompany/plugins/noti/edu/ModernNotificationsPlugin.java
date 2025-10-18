@@ -402,12 +402,25 @@ public class ModernNotificationsPlugin extends Plugin {
                 
                 // Apply the ProgressStyle to the notification
                 // Note: We need to build the notification with the native Android API for ProgressStyle
-                Notification.Builder nativeBuilder = new Notification.Builder(getContext(), DEFAULT_CHANNEL_ID)
+                String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
+                Notification.Builder nativeBuilder = new Notification.Builder(getContext(), channelId)
                     .setContentTitle(builder.build().extras.getString(Notification.EXTRA_TITLE))
                     .setContentText(builder.build().extras.getString(Notification.EXTRA_TEXT))
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setStyle(ps)
                     .setOngoing(true); // Make it ongoing for progress notifications
+                
+                // Add subText if provided
+                if (notification.has("subText")) {
+                    String subText = notification.getString("subText");
+                    if (subText != null) {
+                        nativeBuilder.setSubText(subText);
+                    }
+                }
+                
+                // Add other notification properties
+                boolean autoCancel = notification.has("autoCancel") ? notification.getBool("autoCancel") : true;
+                nativeBuilder.setAutoCancel(autoCancel);
                 
                 // Add actions if provided
                 if (notification.has("actions")) {
