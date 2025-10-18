@@ -58,10 +58,14 @@ public class ModernNotificationsPlugin extends Plugin {
     private Map<Integer, JSObject> scheduledNotifications = new HashMap<>();
     private Map<Integer, JSObject> deliveredNotifications = new HashMap<>();
     private static final String DEFAULT_CHANNEL_ID = "default";
+    
+    // Static reference for BroadcastReceiver
+    private static ModernNotificationsPlugin instance;
 
     @Override
     public void load() {
         super.load();
+        instance = this; // Set static reference
         notificationManager = NotificationManagerCompat.from(getContext());
         createDefaultChannel();
     }
@@ -165,10 +169,13 @@ public class ModernNotificationsPlugin extends Plugin {
         String body = notification.has("body") ? notification.getString("body") : "";
         String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
         
+        // Store notification data for later use in events
+        scheduledNotifications.put(id, notification);
+        
         scheduledNotifications.put(id, notification);
 
         // Create notification with Android 16 Progress Style if available
-        NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId);
+        NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, id);
         
         // Try to use Android 16+ ProgressStyle API
         boolean usedProgressStyle = false;
@@ -196,7 +203,7 @@ public class ModernNotificationsPlugin extends Plugin {
         scheduledNotifications.remove(id);
     }
 
-    private NotificationCompat.Builder createNotificationBuilder(JSObject notification, String channelId) {
+    private NotificationCompat.Builder createNotificationBuilder(JSObject notification, String channelId, int notificationId) {
         String title = notification.has("title") ? notification.getString("title") : "";
         String body = notification.has("body") ? notification.getString("body") : "";
         String subText = notification.getString("subText");
@@ -249,7 +256,7 @@ public class ModernNotificationsPlugin extends Plugin {
                 JSONArray actionsJSON = notification.getJSONArray("actions");
                 if (actionsJSON != null) {
                     JSArray actions = JSArray.from(actionsJSON);
-                    addActionsToBuilder(builder, actions);
+                    addActionsToBuilder(builder, actions, notificationId);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing notification actions", e);
@@ -436,13 +443,13 @@ public class ModernNotificationsPlugin extends Plugin {
                                     String actionIcon = action.getString("icon");
                                     
                                     if (actionId != null && actionTitle != null) {
-                                        // Create intent for this action - using the main activity
-                                        Intent actionIntent = new Intent(getContext(), getActivity().getClass());
-                                        actionIntent.putExtra("action_id", actionId);
-                                        actionIntent.putExtra("notification_id", notification.getInteger("id"));
-                                        actionIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                        // Create broadcast intent for this action
+                                        Intent actionIntent = new Intent(getContext(), NotificationActionReceiver.class);
+                                        actionIntent.setAction(NotificationActionReceiver.ACTION_NOTIFICATION_ACTION);
+                                        actionIntent.putExtra("actionId", actionId);
+                                        actionIntent.putExtra("notificationId", notification.getInteger("id"));
                                         
-                                        PendingIntent actionPendingIntent = PendingIntent.getActivity(
+                                        PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
                                             getContext(), 
                                             (notification.getInteger("id") + actionId).hashCode(), 
                                             actionIntent, 
@@ -497,7 +504,7 @@ public class ModernNotificationsPlugin extends Plugin {
         }
     }
 
-    private void addActionsToBuilder(NotificationCompat.Builder builder, JSArray actions) {
+    private void addActionsToBuilder(NotificationCompat.Builder builder, JSArray actions, int notificationId) {
         try {
             for (int i = 0; i < actions.length(); i++) {
                 JSONObject jsonObj = actions.optJSONObject(i);
@@ -506,12 +513,15 @@ public class ModernNotificationsPlugin extends Plugin {
                     String actionId = action.getString("id");
                     String actionTitle = action.getString("title");
                     
-                    Intent intent = new Intent(getContext(), getActivity().getClass());
+                    // Create broadcast intent for action
+                    Intent intent = new Intent(getContext(), NotificationActionReceiver.class);
+                    intent.setAction(NotificationActionReceiver.ACTION_NOTIFICATION_ACTION);
                     intent.putExtra("actionId", actionId);
+                    intent.putExtra("notificationId", notificationId);
                     
-                    PendingIntent pendingIntent = PendingIntent.getActivity(
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
                         getContext(), 
-                        actionId.hashCode(), 
+                        (actionId + notificationId).hashCode(), // Unique request code
                         intent, 
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
                     );
@@ -520,7 +530,7 @@ public class ModernNotificationsPlugin extends Plugin {
                 }
             }
         } catch (Exception e) {
-            // Ignore action errors
+            Log.e(TAG, "Error adding actions to builder", e);
         }
     }
 
@@ -819,5 +829,32 @@ public class ModernNotificationsPlugin extends Plugin {
             }
         }
         return "default";
+    }
+    
+    // Static method to handle notification actions from BroadcastReceiver
+    public static void handleNotificationAction(String actionId, int notificationId, String notificationData) {
+        if (instance != null) {
+            instance.sendActionEvent(actionId, notificationId, notificationData);
+        }
+    }
+    
+    private void sendActionEvent(String actionId, int notificationId, String notificationData) {
+        JSObject ret = new JSObject();
+        ret.put("actionId", actionId);
+        
+        // Get notification data
+        JSObject notification = deliveredNotifications.get(notificationId);
+        if (notification == null) {
+            notification = scheduledNotifications.get(notificationId);
+        }
+        if (notification == null) {
+            notification = new JSObject();
+            notification.put("id", notificationId);
+        }
+        
+        ret.put("notification", notification);
+        
+        Log.d(TAG, "Sending localNotificationActionPerformed event: " + ret.toString());
+        notifyListeners("localNotificationActionPerformed", ret);
     }
 }
