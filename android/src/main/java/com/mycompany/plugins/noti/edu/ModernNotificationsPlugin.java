@@ -391,9 +391,15 @@ public class ModernNotificationsPlugin extends Plugin {
         if (notification.has("actions")) {
             try {
                 JSONArray actionsJSON = notification.getJSONArray("actions");
-                if (actionsJSON != null) {
+                if (actionsJSON != null && actionsJSON.length() > 0) {
                     JSArray actions = JSArray.from(actionsJSON);
-                    addActionsToBuilder(builder, actions, notificationId);
+                    if (actions != null && actions.length() > 0) {
+                        addActionsToBuilder(builder, actions, notificationId);
+                    } else {
+                        Log.w(TAG, "JSArray.from() returned null or empty array");
+                    }
+                } else {
+                    Log.w(TAG, "Actions JSONArray is null or empty");
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing notification actions", e);
@@ -643,6 +649,11 @@ public class ModernNotificationsPlugin extends Plugin {
 
     private void addActionsToBuilder(NotificationCompat.Builder builder, JSArray actions, int notificationId) {
         try {
+            if (actions == null) {
+                Log.w(TAG, "Actions array is null, skipping actions");
+                return;
+            }
+            
             for (int i = 0; i < actions.length(); i++) {
                 JSONObject jsonObj = actions.optJSONObject(i);
                 if (jsonObj != null) {
@@ -891,8 +902,12 @@ public class ModernNotificationsPlugin extends Plugin {
                 if (progressStyle.has("points")) {
                     try {
                         JSONArray pointsJSON = progressStyle.getJSONArray("points");
-                        if (pointsJSON != null) {
+                        if (pointsJSON != null && pointsJSON.length() > 0) {
                             currentPoints = JSArray.from(pointsJSON);
+                            if (currentPoints == null) {
+                                Log.w(TAG, "JSArray.from() returned null for points");
+                                currentPoints = new JSArray();
+                            }
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing progress points", e);
