@@ -170,11 +170,21 @@ public class ModernNotificationsPlugin extends Plugin {
         // Create notification with Android 16 Progress Style if available
         NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId);
         
-        // Add Progress Style for Android 16+
-        if (Build.VERSION.SDK_INT >= 35 && notification.has("progressStyle")) { // Android 16 is API 35 xxx
+        // Try to use Android 16+ ProgressStyle API
+        boolean usedProgressStyle = false;
+        if (Build.VERSION.SDK_INT >= 36 && notification.has("progressStyle")) { // Android API level 36
             JSObject progressStyle = notification.getJSObject("progressStyle");
             if (progressStyle != null) {
-                addProgressStyle(builder, progressStyle, notification);
+                try {
+                    addProgressStyle(builder, progressStyle, notification);
+                    // Move to delivered and return early since ProgressStyle handles its own notification
+                    deliveredNotifications.put(id, notification);
+                    scheduledNotifications.remove(id);
+                    return;
+                } catch (Exception e) {
+                    Log.w(TAG, "Failed to use ProgressStyle API, falling back to standard progress", e);
+                    // Continue with standard notification
+                }
             }
         }
 
@@ -243,6 +253,17 @@ public class ModernNotificationsPlugin extends Plugin {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing notification actions", e);
+            }
+        }
+
+        // Add standard progress bar if progressStyle is provided but not using ProgressStyle API
+        if (notification.has("progressStyle")) {
+            JSObject progressStyle = notification.getJSObject("progressStyle");
+            if (progressStyle != null) {
+                int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+                int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
+                boolean indeterminate = progressStyle.has("indeterminate") ? progressStyle.getBool("indeterminate") : false;
+                builder.setProgress(maxProgress, progress, indeterminate);
             }
         }
 
@@ -455,18 +476,11 @@ public class ModernNotificationsPlugin extends Plugin {
                 Log.i(TAG, "Successfully created Progress-centric notification with segments and points");
                 
             } catch (Exception e) {
-                Log.e(TAG, "Error creating ProgressStyle notification, falling back to standard progress", e);
-                // Fallback to standard progress
-                int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
-                int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
-                builder.setProgress(maxProgress, progress, false);
+                Log.e(TAG, "Error creating ProgressStyle notification", e);
+                throw e; // Re-throw to be handled by caller
             }
         } else {
-            // Fallback for older Android versions
-            int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
-            int maxProgress = progressStyle.has("maxProgress") ? progressStyle.getInteger("maxProgress") : 100;
-            builder.setProgress(maxProgress, progress, false);
-            Log.i(TAG, "Using standard progress bar (Android < 16, API level < 36)");
+            throw new UnsupportedOperationException("ProgressStyle API requires Android API level 36+");
         }
     }
 
