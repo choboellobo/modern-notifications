@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.util.Log;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -341,6 +342,17 @@ public class ModernNotificationsPlugin extends Plugin {
     }
 
     private NotificationCompat.Builder createNotificationBuilder(JSObject notification, String channelId, int notificationId) {
+        Log.d(TAG, "🔨 Creating notification builder for ID: " + notificationId);
+        
+        // ✅ ESPECIAL: Si tiene ProgressStyle con segments, usar builder nativo
+        if (notification.has("progressStyle") && Build.VERSION.SDK_INT >= 36) {
+            JSObject progressStyle = notification.getJSObject("progressStyle");
+            if (progressStyle != null && progressStyle.has("segments")) {
+                Log.d(TAG, "🎯 DETECTED PROGRESSSTYLE WITH SEGMENTS - Using native builder");
+                return createNativeProgressNotification(notification, channelId, notificationId);
+            }
+        }
+        
         String title = notification.has("title") ? notification.getString("title") : "";
         String body = notification.has("body") ? notification.getString("body") : "";
         String subText = notification.getString("subText");
@@ -418,6 +430,110 @@ public class ModernNotificationsPlugin extends Plugin {
         }
 
         return builder;
+    }
+
+    // ✅ NUEVO MÉTODO: Crear notificación nativa con ProgressStyle
+    @RequiresApi(api = 36)
+    private NotificationCompat.Builder createNativeProgressNotification(JSObject notification, String channelId, int notificationId) {
+        Log.d(TAG, "🚀 Creating NATIVE ProgressStyle notification");
+        
+        String title = notification.has("title") ? notification.getString("title") : "";
+        String body = notification.has("body") ? notification.getString("body") : "";
+        String subText = notification.getString("subText");
+        boolean autoCancel = notification.has("autoCancel") ? notification.getBool("autoCancel") : true;
+        boolean ongoing = notification.has("ongoing") ? notification.getBool("ongoing") : true; // Force ongoing for progress
+        
+        JSObject progressStyle = notification.getJSObject("progressStyle");
+        
+        // ✅ CREAR ProgressStyle completamente nuevo
+        int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+        boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : true;
+        
+        Notification.ProgressStyle ps = new Notification.ProgressStyle()
+            .setStyledByProgress(styledByProgress)
+            .setProgress(progress);
+        
+        Log.d(TAG, "📊 ProgressStyle created with progress: " + progress);
+        
+        // ✅ AGREGAR SEGMENTOS
+        if (progressStyle.has("segments")) {
+            try {
+                JSONArray segmentsJSON = progressStyle.getJSONArray("segments");
+                Log.d(TAG, "🎨 ADDING SEGMENTS: " + segmentsJSON.toString());
+                
+                if (segmentsJSON != null && segmentsJSON.length() > 0) {
+                    for (int i = 0; i < segmentsJSON.length(); i++) {
+                        JSONObject segmentJSON = segmentsJSON.optJSONObject(i);
+                        if (segmentJSON != null) {
+                            JSObject segment = JSObject.fromJSONObject(segmentJSON);
+                            int length = segment.has("length") ? segment.getInteger("length") : 100;
+                            String colorStr = segment.has("color") ? segment.getString("color") : "#FFFFFF";
+                            
+                            Log.d(TAG, "🔵 Segment " + i + ": length=" + length + ", color=" + colorStr);
+                            
+                            Notification.ProgressStyle.Segment seg = new Notification.ProgressStyle.Segment(length);
+                            
+                            if (segment.has("color") && colorStr != null) {
+                                try {
+                                    int color = Color.parseColor(colorStr);
+                                    seg.setColor(color);
+                                    Log.d(TAG, "✅ Segment color applied: " + colorStr);
+                                } catch (IllegalArgumentException e) {
+                                    Log.w(TAG, "❌ Invalid color: " + colorStr);
+                                }
+                            }
+                            
+                            ps.addProgressSegment(seg);
+                            Log.d(TAG, "✅ Segment " + i + " added successfully");
+                        }
+                    }
+                    Log.d(TAG, "🎉 ALL SEGMENTS ADDED TO PROGRESSSTYLE");
+                } else {
+                    Log.w(TAG, "⚠️ No segments in JSON");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "💥 Error processing segments", e);
+            }
+        }
+        
+        // ✅ CREAR NOTIFICACIÓN NATIVA CON ProgressStyle
+        Notification.Builder nativeBuilder = new Notification.Builder(getContext(), channelId)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(getSmallIconResource())
+            .setStyle(ps)
+            .setAutoCancel(autoCancel)
+            .setOngoing(ongoing);
+        
+        if (subText != null) {
+            nativeBuilder.setSubText(subText);
+        }
+        
+        Log.d(TAG, "🎯 Native notification builder created with ProgressStyle");
+        
+        // ✅ CONVERTIR A NotificationCompat.Builder para compatibilidad
+        // Crear la notificación nativa y luego envolver
+        Notification builtNotification = nativeBuilder.build();
+        
+        // Crear un NotificationCompat.Builder que contenga la notificación nativa
+        NotificationCompat.Builder compatBuilder = new NotificationCompat.Builder(getContext(), channelId)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(getSmallIconResource())
+            .setAutoCancel(autoCancel)
+            .setOngoing(ongoing);
+        
+        if (subText != null) {
+            compatBuilder.setSubText(subText);
+        }
+        
+        // ✅ TRICK: Usar la notificación nativa construida directamente
+        // Esto no es ideal pero es necesario para ProgressStyle
+        compatBuilder.getExtras().putAll(builtNotification.extras);
+        
+        Log.d(TAG, "🔄 Converted to NotificationCompat.Builder");
+        
+        return compatBuilder;
     }
 
     private void addProgressStyle(NotificationCompat.Builder builder, JSObject progressStyle, JSObject notification) {
@@ -560,6 +676,12 @@ public class ModernNotificationsPlugin extends Plugin {
                     ps.setProgressIndeterminate(indeterminate);
                 }
                 
+                // ✅ FORZAR RECREACIÓN COMPLETA DEL ProgressStyle
+                Log.d(TAG, "🔥 FORCING COMPLETE PROGRESSSTYLE RECREATION");
+                
+                // Verificar que los segmentos realmente se añadieron
+                Log.d(TAG, "📊 ProgressStyle segments count verification needed");
+                
                 // Apply the ProgressStyle to the notification
                 // Note: We need to build the notification with the native Android API for ProgressStyle
                 String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
@@ -572,7 +694,9 @@ public class ModernNotificationsPlugin extends Plugin {
                     .setStyle(ps)
                     .setOngoing(true); // Make it ongoing for progress notifications
                 
-                Log.d(TAG, "ProgressStyle applied successfully to notification");
+                Log.d(TAG, "✅ ProgressStyle applied to native notification builder");
+                Log.d(TAG, "🔍 Title: " + builder.build().extras.getString(Notification.EXTRA_TITLE));
+                Log.d(TAG, "🔍 Text: " + builder.build().extras.getString(Notification.EXTRA_TEXT));
                 
                 // Add subText if provided
                 if (notification.has("subText")) {
@@ -1090,22 +1214,38 @@ public class ModernNotificationsPlugin extends Plugin {
                 String channelId = notification.getString("channelId", "default");
                 int notificationId = notification.getInteger("id");
                 
-                Log.d(TAG, "🔨 Creating completely new notification builder...");
-                NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, notificationId);
+                Log.d(TAG, "🔨 Creating completely new notification with NATIVE ProgressStyle...");
                 
-                if (builder != null) {
-                    // Mostrar la nueva notificación
-                    notificationManager.notify(notificationId, builder.build());
-                    Log.d(TAG, "✅ New notification created and displayed: " + notificationId);
-                    
-                    // Actualizar en el storage
-                    deliveredNotifications.put(notificationId, notification);
-                    
-                    Log.d(TAG, "🎉 Progress segments updated successfully - CANCEL & RECREATE method");
+                // ✅ USAR NOTIFICACIÓN NATIVA DIRECTA para ProgressStyle con segments
+                if (Build.VERSION.SDK_INT >= 36) {
+                    Log.d(TAG, "🎯 Using DIRECT NATIVE notification for ProgressStyle segments");
+                    Notification nativeNotification = createNativeProgressNotificationDirect(notification, channelId, notificationId);
+                    if (nativeNotification != null) {
+                        notificationManager.notify(notificationId, nativeNotification);
+                        Log.d(TAG, "✅ NATIVE ProgressStyle notification displayed successfully: " + notificationId);
+                        
+                        // Actualizar en el storage
+                        deliveredNotifications.put(notificationId, notification);
+                        Log.d(TAG, "🎉 Progress segments updated successfully - NATIVE DIRECT method");
+                    } else {
+                        Log.e(TAG, "❌ Failed to create NATIVE ProgressStyle notification");
+                        call.reject("Failed to create native ProgressStyle notification");
+                        return;
+                    }
                 } else {
-                    Log.e(TAG, "❌ Failed to create notification builder for update");
-                    call.reject("Failed to create notification builder");
-                    return;
+                    // Fallback para versiones anteriores
+                    Log.d(TAG, "📱 Using fallback NotificationCompat.Builder (Android < 36)");
+                    NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, notificationId);
+                    if (builder != null) {
+                        notificationManager.notify(notificationId, builder.build());
+                        Log.d(TAG, "✅ Fallback notification displayed: " + notificationId);
+                        deliveredNotifications.put(notificationId, notification);
+                        Log.d(TAG, "🎉 Progress segments updated successfully - FALLBACK method");
+                    } else {
+                        Log.e(TAG, "❌ Failed to create fallback notification builder");
+                        call.reject("Failed to create notification builder");
+                        return;
+                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "💥 Error in CANCEL & RECREATE method", e);
@@ -1196,6 +1336,141 @@ public class ModernNotificationsPlugin extends Plugin {
                 // Dispatch the action event
                 sendActionEvent(actionId, notificationId, notificationData);
             }
+        }
+    }
+
+    // ✅ MÉTODO NATIVO DIRECTO para ProgressStyle
+    @RequiresApi(api = 36)
+    private Notification createNativeProgressNotificationDirect(JSObject notification, String channelId, int notificationId) {
+        Log.d(TAG, "🚀 Creating DIRECT native ProgressStyle notification");
+        
+        try {
+            String title = notification.has("title") ? notification.getString("title") : "";
+            String body = notification.has("body") ? notification.getString("body") : "";
+            String subText = notification.getString("subText");
+            boolean autoCancel = notification.has("autoCancel") ? notification.getBool("autoCancel") : true;
+            boolean ongoing = notification.has("ongoing") ? notification.getBool("ongoing") : true; // Force ongoing for progress
+            
+            JSObject progressStyle = notification.getJSObject("progressStyle");
+            
+            // ✅ CREAR ProgressStyle COMPLETAMENTE NUEVO
+            int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
+            boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : true;
+            
+            Notification.ProgressStyle ps = new Notification.ProgressStyle()
+                .setStyledByProgress(styledByProgress)
+                .setProgress(progress);
+            
+            Log.d(TAG, "📊 ProgressStyle created with progress: " + progress);
+            
+            // ✅ AGREGAR SEGMENTOS UNO POR UNO
+            if (progressStyle.has("segments")) {
+                try {
+                    JSONArray segmentsJSON = progressStyle.getJSONArray("segments");
+                    Log.d(TAG, "🎨 PROCESSING SEGMENTS: " + segmentsJSON.toString());
+                    
+                    if (segmentsJSON != null && segmentsJSON.length() > 0) {
+                        for (int i = 0; i < segmentsJSON.length(); i++) {
+                            JSONObject segmentJSON = segmentsJSON.optJSONObject(i);
+                            if (segmentJSON != null) {
+                                JSObject segment = JSObject.fromJSONObject(segmentJSON);
+                                int length = segment.has("length") ? segment.getInteger("length") : 100;
+                                String colorStr = segment.has("color") ? segment.getString("color") : "#FFFFFF";
+                                
+                                Log.d(TAG, "🔵 Creating segment " + i + ": length=" + length + ", color=" + colorStr);
+                                
+                                Notification.ProgressStyle.Segment seg = new Notification.ProgressStyle.Segment(length);
+                                
+                                if (segment.has("color") && colorStr != null) {
+                                    try {
+                                        int color = Color.parseColor(colorStr);
+                                        seg.setColor(color);
+                                        Log.d(TAG, "✅ Color applied to segment " + i + ": " + colorStr + " -> " + color);
+                                    } catch (IllegalArgumentException e) {
+                                        Log.w(TAG, "❌ Invalid color for segment " + i + ": " + colorStr);
+                                    }
+                                }
+                                
+                                ps.addProgressSegment(seg);
+                                Log.d(TAG, "✅ Segment " + i + " added to ProgressStyle successfully");
+                            }
+                        }
+                        Log.d(TAG, "🎉 ALL " + segmentsJSON.length() + " SEGMENTS PROCESSED AND ADDED");
+                    } else {
+                        Log.w(TAG, "⚠️ No segments found in progressStyle");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "💥 Error processing segments", e);
+                }
+            }
+            
+            // ✅ CREAR NOTIFICATION BUILDER NATIVO
+            Notification.Builder nativeBuilder = new Notification.Builder(getContext(), channelId)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setSmallIcon(getSmallIconResource())
+                .setStyle(ps)
+                .setAutoCancel(autoCancel)
+                .setOngoing(ongoing);
+            
+            if (subText != null) {
+                nativeBuilder.setSubText(subText);
+                Log.d(TAG, "📝 SubText added: " + subText);
+            }
+            
+            // Agregar acciones si existen
+            if (notification.has("actions")) {
+                try {
+                    JSONArray actionsJSON = notification.getJSONArray("actions");
+                    if (actionsJSON != null && actionsJSON.length() > 0) {
+                        Log.d(TAG, "🎬 Adding " + actionsJSON.length() + " actions to native notification");
+                        for (int i = 0; i < actionsJSON.length(); i++) {
+                            JSONObject actionJSON = actionsJSON.optJSONObject(i);
+                            if (actionJSON != null) {
+                                JSObject action = JSObject.fromJSONObject(actionJSON);
+                                String actionId = action.getString("id");
+                                String actionTitle = action.getString("title");
+                                
+                                if (actionId != null && actionTitle != null) {
+                                    Intent actionIntent = new Intent(getContext(), getActivity().getClass());
+                                    actionIntent.putExtra("fromNotificationAction", true);
+                                    actionIntent.putExtra("actionId", actionId);
+                                    actionIntent.putExtra("notificationId", notificationId);
+                                    actionIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                    
+                                    PendingIntent actionPendingIntent = PendingIntent.getActivity(
+                                        getContext(),
+                                        (notificationId * 1000) + i, // Unique request code
+                                        actionIntent,
+                                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                    );
+                                    
+                                    Notification.Action.Builder actionBuilder = new Notification.Action.Builder(
+                                        android.R.drawable.ic_dialog_info, // Default icon
+                                        actionTitle,
+                                        actionPendingIntent
+                                    );
+                                    
+                                    nativeBuilder.addAction(actionBuilder.build());
+                                    Log.d(TAG, "✅ Action added: " + actionTitle + " (" + actionId + ")");
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error adding actions to native notification", e);
+                }
+            }
+            
+            Log.d(TAG, "🏗️ Building final native notification with ProgressStyle");
+            Notification finalNotification = nativeBuilder.build();
+            Log.d(TAG, "✅ Native ProgressStyle notification built successfully");
+            
+            return finalNotification;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "💥 Error creating native ProgressStyle notification", e);
+            return null;
         }
     }
 }
