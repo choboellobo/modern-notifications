@@ -478,22 +478,29 @@ public class ModernNotificationsPlugin extends Plugin {
                 if (progressStyle.has("segments")) {
                     try {
                         JSONArray segmentsJSON = progressStyle.getJSONArray("segments");
+                        Log.d(TAG, "Processing segments JSON: " + segmentsJSON.toString());
+                        
                         if (segmentsJSON != null && segmentsJSON.length() > 0) {
+                            Log.d(TAG, "Found " + segmentsJSON.length() + " segments to add");
+                            
                             for (int i = 0; i < segmentsJSON.length(); i++) {
                                 JSONObject segmentJSON = segmentsJSON.optJSONObject(i);
                                 if (segmentJSON != null) {
                                     JSObject segment = JSObject.fromJSONObject(segmentJSON);
                                     int length = segment.has("length") ? segment.getInteger("length") : 100;
+                                    String colorStr = segment.has("color") ? segment.getString("color") : "#FFFFFF";
+                                    
+                                    Log.d(TAG, "Adding segment " + i + ": length=" + length + ", color=" + colorStr);
                                     
                                     Notification.ProgressStyle.Segment seg = new Notification.ProgressStyle.Segment(length);
                                     
                                     // Set color if provided
                                     if (segment.has("color")) {
-                                        String colorStr = segment.getString("color");
                                         if (colorStr != null) {
                                             try {
                                                 int color = Color.parseColor(colorStr);
                                                 seg.setColor(color);
+                                                Log.d(TAG, "Segment color set successfully: " + colorStr);
                                             } catch (IllegalArgumentException e) {
                                                 Log.w(TAG, "Invalid color format: " + colorStr);
                                             }
@@ -501,8 +508,11 @@ public class ModernNotificationsPlugin extends Plugin {
                                     }
                                     
                                     ps.addProgressSegment(seg);
+                                    Log.d(TAG, "Segment " + i + " added to ProgressStyle");
                                 }
                             }
+                        } else {
+                            Log.w(TAG, "No segments found in JSON or empty array");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing progress segments", e);
@@ -553,12 +563,16 @@ public class ModernNotificationsPlugin extends Plugin {
                 // Apply the ProgressStyle to the notification
                 // Note: We need to build the notification with the native Android API for ProgressStyle
                 String channelId = notification.has("channelId") ? notification.getString("channelId") : DEFAULT_CHANNEL_ID;
+                Log.d(TAG, "Applying ProgressStyle to native notification builder with channel: " + channelId);
+                
                 Notification.Builder nativeBuilder = new Notification.Builder(getContext(), channelId)
                     .setContentTitle(builder.build().extras.getString(Notification.EXTRA_TITLE))
                     .setContentText(builder.build().extras.getString(Notification.EXTRA_TEXT))
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setStyle(ps)
                     .setOngoing(true); // Make it ongoing for progress notifications
+                
+                Log.d(TAG, "ProgressStyle applied successfully to notification");
                 
                 // Add subText if provided
                 if (notification.has("subText")) {
