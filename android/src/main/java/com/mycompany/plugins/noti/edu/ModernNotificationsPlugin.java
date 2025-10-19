@@ -591,10 +591,14 @@ public class ModernNotificationsPlugin extends Plugin {
                                         actionIntent.setAction(NotificationActionReceiver.ACTION_NOTIFICATION_ACTION);
                                         actionIntent.putExtra("actionId", actionId);
                                         actionIntent.putExtra("notificationId", notification.getInteger("id"));
+                                        actionIntent.putExtra("notificationData", notification.toString());
+                                        
+                                        // Crear un request code único para cada acción
+                                        int requestCode = (notification.getInteger("id") * 1000) + actionId.hashCode();
                                         
                                         PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
                                             getContext(), 
-                                            (notification.getInteger("id") + actionId).hashCode(), 
+                                            requestCode, 
                                             actionIntent, 
                                             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
                                         );
