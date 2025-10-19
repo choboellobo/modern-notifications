@@ -1181,8 +1181,9 @@ public class ModernNotificationsPlugin extends Plugin {
     public void updateProgressSegments(PluginCall call) {
         int id = call.getInt("id", 0);
         JSArray segments = call.getArray("segments");
+        JSArray points = call.getArray("points");  // ✅ AGREGAR soporte para points
 
-        Log.d(TAG, "🔄 CANCEL & RECREATE - Updating progress segments for notification: " + id);
+        Log.d(TAG, "🔄 CANCEL & RECREATE - Updating progress segments and points for notification: " + id);
 
         // Buscar la notificación en delivered o scheduled
         JSObject notification = deliveredNotifications.get(id);
@@ -1191,7 +1192,7 @@ public class ModernNotificationsPlugin extends Plugin {
         }
         
         if (notification != null && segments != null) {
-            Log.d(TAG, "🎯 Found notification, updating segments...");
+            Log.d(TAG, "🎯 Found notification, updating segments and points...");
             
             // ✅ PASO 1: CANCELAR la notificación existente completamente
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
@@ -1205,10 +1206,18 @@ public class ModernNotificationsPlugin extends Plugin {
             JSObject progressStyle = new JSObject();
             progressStyle.put("segments", segments);
             
+            // ✅ AGREGAR points si están presentes
+            if (points != null) {
+                progressStyle.put("points", points);
+                Log.d(TAG, "🎯 ADDING POINTS to new progressStyle: " + points.toString());
+            } else {
+                Log.d(TAG, "ℹ️ No points provided in update, will preserve existing points if any");
+            }
+            
             // ✅ PRESERVAR otros datos del progressStyle original si existen
             JSObject oldProgressStyle = notification.getJSObject("progressStyle");
             if (oldProgressStyle != null) {
-                // Copiar propiedades que NO sean segments
+                // Copiar propiedades que NO sean segments ni points (a menos que no se proporcionen nuevos points)
                 if (oldProgressStyle.has("progress")) {
                     progressStyle.put("progress", oldProgressStyle.getInteger("progress"));
                 }
@@ -1227,14 +1236,26 @@ public class ModernNotificationsPlugin extends Plugin {
                 if (oldProgressStyle.has("endIcon")) {
                     progressStyle.put("endIcon", oldProgressStyle.getString("endIcon"));
                 }
-                // NO copiamos "segments" ni "points" - solo los nuevos
-                Log.d(TAG, "📋 Preserved other progressStyle properties, REPLACED segments completely");
+                
+                // ✅ PRESERVAR points existentes solo si no se proporcionaron nuevos
+                if (points == null && oldProgressStyle.has("points")) {
+                    try {
+                        progressStyle.put("points", oldProgressStyle.getJSONArray("points"));
+                        Log.d(TAG, "📋 Preserved existing points since no new points provided");
+                    } catch (Exception e) {
+                        Log.w(TAG, "Could not preserve existing points", e);
+                    }
+                }
+                
+                Log.d(TAG, "📋 Preserved other progressStyle properties, REPLACED segments and updated points");
             }
             
             // ✅ REEMPLAZAR completamente el progressStyle en la notificación
             notification.put("progressStyle", progressStyle);
-            Log.d(TAG, "📊 COMPLETELY REPLACED progressStyle with NEW segments: " + segments.toString());
-            Log.d(TAG, "🚮 Old segments are gone, only new segments will be processed");
+            String segmentsLog = segments.toString();
+            String pointsLog = points != null ? points.toString() : "null (preserved existing)";
+            Log.d(TAG, "📊 COMPLETELY REPLACED progressStyle - Segments: " + segmentsLog + " - Points: " + pointsLog);
+            Log.d(TAG, "🚮 Old segments are gone, points updated/preserved, only new data will be processed");
             
             // ✅ PASO 3: RECREAR completamente la notificación desde cero
             // Esto garantiza que no haya acumulación de segmentos antiguos
@@ -1434,6 +1455,50 @@ public class ModernNotificationsPlugin extends Plugin {
                 } catch (Exception e) {
                     Log.e(TAG, "💥 Error processing segments", e);
                 }
+            }
+            
+            // ✅ AGREGAR POINTS si están presentes
+            if (progressStyle.has("points")) {
+                try {
+                    JSONArray pointsJSON = progressStyle.getJSONArray("points");
+                    Log.d(TAG, "🎯 PROCESSING POINTS: " + pointsJSON.toString());
+                    
+                    if (pointsJSON != null && pointsJSON.length() > 0) {
+                        Log.d(TAG, "🔢 EXPECTING TO ADD " + pointsJSON.length() + " POINTS TO ProgressStyle");
+                        for (int i = 0; i < pointsJSON.length(); i++) {
+                            JSONObject pointJSON = pointsJSON.optJSONObject(i);
+                            if (pointJSON != null) {
+                                JSObject point = JSObject.fromJSONObject(pointJSON);
+                                int position = point.has("position") ? point.getInteger("position") : 0;
+                                String colorStr = point.has("color") ? point.getString("color") : "#FFFFFF";
+                                
+                                Log.d(TAG, "🔸 Creating point " + i + ": position=" + position + ", color=" + colorStr);
+                                
+                                Notification.ProgressStyle.Point pt = new Notification.ProgressStyle.Point(position);
+                                
+                                if (point.has("color") && colorStr != null) {
+                                    try {
+                                        int color = Color.parseColor(colorStr);
+                                        pt.setColor(color);
+                                        Log.d(TAG, "✅ Color applied to point " + i + ": " + colorStr + " -> " + color);
+                                    } catch (IllegalArgumentException e) {
+                                        Log.w(TAG, "❌ Invalid color for point " + i + ": " + colorStr);
+                                    }
+                                }
+                                
+                                ps.addProgressPoint(pt);
+                                Log.d(TAG, "✅ Point " + i + " added to ProgressStyle successfully");
+                            }
+                        }
+                        Log.d(TAG, "🎉 ALL " + pointsJSON.length() + " POINTS PROCESSED AND ADDED");
+                    } else {
+                        Log.w(TAG, "⚠️ No points found in progressStyle");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "💥 Error processing points", e);
+                }
+            } else {
+                Log.d(TAG, "ℹ️ No points provided in progressStyle");
             }
             
             // ✅ CREAR NOTIFICATION BUILDER NATIVO
