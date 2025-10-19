@@ -208,19 +208,20 @@
       },
       {
         "name": "updateProgressSegments",
-        "signature": "(options: { id: number; segments: ProgressStyleSegment[]; }) => Promise<void>",
+        "signature": "(options: { id: number; segments: ProgressStyleSegment[]; points?: ProgressStylePoint[]; }) => Promise<void>",
         "parameters": [
           {
             "name": "options",
             "docs": "",
-            "type": "{ id: number; segments: ProgressStyleSegment[]; }"
+            "type": "{ id: number; segments: ProgressStyleSegment[]; points?: ProgressStylePoint[] | undefined; }"
           }
         ],
         "returns": "Promise<void>",
         "tags": [],
-        "docs": "Update segments in a progress-centric notification",
+        "docs": "Update segments and points in a progress-centric notification",
         "complexTypes": [
-          "ProgressStyleSegment"
+          "ProgressStyleSegment",
+          "ProgressStylePoint"
         ],
         "slug": "updateprogresssegments"
       },

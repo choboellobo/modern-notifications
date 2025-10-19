@@ -352,11 +352,12 @@ export interface ModernNotificationsPlugin {
         points: ProgressStylePoint[];
     }): Promise<void>;
     /**
-     * Update segments in a progress-centric notification
+     * Update segments and points in a progress-centric notification
      */
     updateProgressSegments(options: {
         id: number;
         segments: ProgressStyleSegment[];
+        points?: ProgressStylePoint[];
     }): Promise<void>;
     /**
      * Listen for when a notification is received
