@@ -586,17 +586,23 @@ public class ModernNotificationsPlugin extends Plugin {
                                     String actionIcon = action.getString("icon");
                                     
                                     if (actionId != null && actionTitle != null) {
-                                        // Create broadcast intent for this action
-                                        Intent actionIntent = new Intent(getContext(), NotificationActionReceiver.class);
-                                        actionIntent.setAction(NotificationActionReceiver.ACTION_NOTIFICATION_ACTION);
+                                        // Create activity intent to open the app directly
+                                        Intent actionIntent = new Intent();
+                                        actionIntent.setClassName(getContext().getPackageName(), getContext().getPackageName() + ".MainActivity");
+                                        actionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK 
+                                            | Intent.FLAG_ACTIVITY_CLEAR_TOP 
+                                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                        
+                                        // Add action data as extras
                                         actionIntent.putExtra("actionId", actionId);
                                         actionIntent.putExtra("notificationId", notification.getInteger("id"));
                                         actionIntent.putExtra("notificationData", notification.toString());
+                                        actionIntent.putExtra("fromNotificationAction", true);
                                         
                                         // Crear un request code único para cada acción
                                         int requestCode = (notification.getInteger("id") * 1000) + actionId.hashCode();
                                         
-                                        PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
+                                        PendingIntent actionPendingIntent = PendingIntent.getActivity(
                                             getContext(), 
                                             requestCode, 
                                             actionIntent, 
@@ -1012,5 +1018,24 @@ public class ModernNotificationsPlugin extends Plugin {
         
         Log.d(TAG, "Sending localNotificationActionPerformed event: " + ret.toString());
         notifyListeners("localNotificationActionPerformed", ret);
+    }
+    
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        
+        // Check if this intent came from a notification action
+        if (intent != null && intent.getBooleanExtra("fromNotificationAction", false)) {
+            String actionId = intent.getStringExtra("actionId");
+            int notificationId = intent.getIntExtra("notificationId", -1);
+            String notificationData = intent.getStringExtra("notificationData");
+            
+            Log.d(TAG, "App opened from notification action: " + actionId + " for notification: " + notificationId);
+            
+            if (actionId != null && notificationId != -1) {
+                // Dispatch the action event
+                sendActionEvent(actionId, notificationId, notificationData);
+            }
+        }
     }
 }
