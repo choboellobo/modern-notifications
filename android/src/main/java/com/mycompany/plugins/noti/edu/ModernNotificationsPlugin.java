@@ -1198,15 +1198,43 @@ public class ModernNotificationsPlugin extends Plugin {
             notificationManager.cancel(id);
             Log.d(TAG, "❌ Cancelled existing notification: " + id);
             
-            // ✅ PASO 2: Actualizar los datos en memoria
-            JSObject progressStyle = notification.getJSObject("progressStyle");
-            if (progressStyle == null) {
-                progressStyle = new JSObject();
-                notification.put("progressStyle", progressStyle);
+            // ✅ PASO 2: REEMPLAZAR COMPLETAMENTE los datos en memoria
+            Log.d(TAG, "🔥 CREATING COMPLETELY NEW progressStyle object to avoid any data contamination");
+            
+            // ✅ CREAR progressStyle completamente nuevo para evitar contaminación de datos
+            JSObject progressStyle = new JSObject();
+            progressStyle.put("segments", segments);
+            
+            // ✅ PRESERVAR otros datos del progressStyle original si existen
+            JSObject oldProgressStyle = notification.getJSObject("progressStyle");
+            if (oldProgressStyle != null) {
+                // Copiar propiedades que NO sean segments
+                if (oldProgressStyle.has("progress")) {
+                    progressStyle.put("progress", oldProgressStyle.getInteger("progress"));
+                }
+                if (oldProgressStyle.has("styledByProgress")) {
+                    progressStyle.put("styledByProgress", oldProgressStyle.getBool("styledByProgress"));
+                }
+                if (oldProgressStyle.has("indeterminate")) {
+                    progressStyle.put("indeterminate", oldProgressStyle.getBool("indeterminate"));
+                }
+                if (oldProgressStyle.has("trackerIcon")) {
+                    progressStyle.put("trackerIcon", oldProgressStyle.getString("trackerIcon"));
+                }
+                if (oldProgressStyle.has("startIcon")) {
+                    progressStyle.put("startIcon", oldProgressStyle.getString("startIcon"));
+                }
+                if (oldProgressStyle.has("endIcon")) {
+                    progressStyle.put("endIcon", oldProgressStyle.getString("endIcon"));
+                }
+                // NO copiamos "segments" ni "points" - solo los nuevos
+                Log.d(TAG, "📋 Preserved other progressStyle properties, REPLACED segments completely");
             }
             
-            progressStyle.put("segments", segments);
-            Log.d(TAG, "📊 Updated segments data: " + segments.toString());
+            // ✅ REEMPLAZAR completamente el progressStyle en la notificación
+            notification.put("progressStyle", progressStyle);
+            Log.d(TAG, "📊 COMPLETELY REPLACED progressStyle with NEW segments: " + segments.toString());
+            Log.d(TAG, "🚮 Old segments are gone, only new segments will be processed");
             
             // ✅ PASO 3: RECREAR completamente la notificación desde cero
             // Esto garantiza que no haya acumulación de segmentos antiguos
@@ -1357,19 +1385,23 @@ public class ModernNotificationsPlugin extends Plugin {
             int progress = progressStyle.has("progress") ? progressStyle.getInteger("progress") : 0;
             boolean styledByProgress = progressStyle.has("styledByProgress") ? progressStyle.getBool("styledByProgress") : true;
             
+            Log.d(TAG, "🆕 CREATING BRAND NEW ProgressStyle instance - hashCode will be unique");
             Notification.ProgressStyle ps = new Notification.ProgressStyle()
                 .setStyledByProgress(styledByProgress)
                 .setProgress(progress);
             
-            Log.d(TAG, "📊 ProgressStyle created with progress: " + progress);
+            Log.d(TAG, "📊 NEW ProgressStyle created - HashCode: " + ps.hashCode() + " - Progress: " + progress);
+            Log.d(TAG, "🔄 This ProgressStyle should have ZERO segments initially");
             
             // ✅ AGREGAR SEGMENTOS UNO POR UNO
             if (progressStyle.has("segments")) {
                 try {
                     JSONArray segmentsJSON = progressStyle.getJSONArray("segments");
                     Log.d(TAG, "🎨 PROCESSING SEGMENTS: " + segmentsJSON.toString());
+                    Log.d(TAG, "🔢 EXPECTING TO ADD " + segmentsJSON.length() + " SEGMENTS TO FRESH ProgressStyle");
                     
                     if (segmentsJSON != null && segmentsJSON.length() > 0) {
+                        Log.d(TAG, "🚀 STARTING SEGMENT LOOP - Creating FRESH segments for new ProgressStyle");
                         for (int i = 0; i < segmentsJSON.length(); i++) {
                             JSONObject segmentJSON = segmentsJSON.optJSONObject(i);
                             if (segmentJSON != null) {
