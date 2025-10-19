@@ -878,22 +878,56 @@ public class ModernNotificationsPlugin extends Plugin {
     public void updateProgress(PluginCall call) {
         int id = call.getInt("id", 0);
         int progress = call.getInt("progress", 0);
-        JSObject progressStyle = call.getObject("progressStyle");
+        JSObject progressStyleUpdate = call.getObject("progressStyle");
 
+        Log.d(TAG, "Updating progress for notification: " + id + " to: " + progress);
+
+        // Buscar la notificación en delivered o scheduled
         JSObject notification = deliveredNotifications.get(id);
+        if (notification == null) {
+            notification = scheduledNotifications.get(id);
+        }
+        
         if (notification != null) {
             // Update the notification with new progress
-            if (progressStyle != null) {
-                notification.put("progressStyle", progressStyle);
+            if (progressStyleUpdate != null) {
+                notification.put("progressStyle", progressStyleUpdate);
+                Log.d(TAG, "Updated progressStyle: " + progressStyleUpdate.toString());
             } else {
                 JSObject currentStyle = notification.getJSObject("progressStyle");
-                if (currentStyle != null) {
-                    currentStyle.put("progress", progress);
+                if (currentStyle == null) {
+                    currentStyle = new JSObject();
+                    notification.put("progressStyle", currentStyle);
                 }
+                currentStyle.put("progress", progress);
+                Log.d(TAG, "Updated progress value to: " + progress);
             }
             
-            // Re-schedule the notification with updated progress
-            scheduleNotification(notification);
+            // Recrear y mostrar la notificación actualizada
+            try {
+                String channelId = notification.getString("channelId", "default");
+                int notificationId = notification.getInteger("id");
+                NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, notificationId);
+                if (builder != null) {
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
+                    notificationManager.notify(notificationId, builder.build());
+                    
+                    // Actualizar en el storage
+                    deliveredNotifications.put(notificationId, notification);
+                    
+                    Log.d(TAG, "Progress updated successfully for notification: " + notificationId);
+                } else {
+                    Log.e(TAG, "Failed to create notification builder for update");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating progress", e);
+                call.reject("Error updating progress: " + e.getMessage());
+                return;
+            }
+        } else {
+            Log.w(TAG, "Notification not found. ID: " + id);
+            call.reject("Notification not found");
+            return;
         }
         
         call.resolve();
@@ -904,41 +938,77 @@ public class ModernNotificationsPlugin extends Plugin {
         int id = call.getInt("id", 0);
         JSArray points = call.getArray("points");
 
+        Log.d(TAG, "Adding progress points for notification: " + id);
+
+        // Buscar la notificación en delivered o scheduled
         JSObject notification = deliveredNotifications.get(id);
+        if (notification == null) {
+            notification = scheduledNotifications.get(id);
+        }
+        
         if (notification != null && points != null) {
             JSObject progressStyle = notification.getJSObject("progressStyle");
-            if (progressStyle != null) {
-                JSArray currentPoints = null;
-                if (progressStyle.has("points")) {
-                    try {
-                        JSONArray pointsJSON = progressStyle.getJSONArray("points");
-                        if (pointsJSON != null && pointsJSON.length() > 0) {
-                            currentPoints = JSArray.from(pointsJSON);
-                            if (currentPoints == null) {
-                                Log.w(TAG, "JSArray.from() returned null for points");
-                                currentPoints = new JSArray();
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing progress points", e);
-                    }
-                }
-                if (currentPoints == null) {
-                    currentPoints = new JSArray();
-                }
-                
-                // Add new points
-                try {
-                    for (int i = 0; i < points.length(); i++) {
-                        currentPoints.put(points.get(i));
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error adding progress points", e);
-                }
-                
-                progressStyle.put("points", currentPoints);
-                scheduleNotification(notification);
+            if (progressStyle == null) {
+                progressStyle = new JSObject();
+                notification.put("progressStyle", progressStyle);
             }
+            
+            JSArray currentPoints = null;
+            if (progressStyle.has("points")) {
+                try {
+                    JSONArray pointsJSON = progressStyle.getJSONArray("points");
+                    if (pointsJSON != null && pointsJSON.length() > 0) {
+                        currentPoints = JSArray.from(pointsJSON);
+                        if (currentPoints == null) {
+                            Log.w(TAG, "JSArray.from() returned null for points");
+                            currentPoints = new JSArray();
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing progress points", e);
+                }
+            }
+            if (currentPoints == null) {
+                currentPoints = new JSArray();
+            }
+            
+            // Add new points
+            try {
+                for (int i = 0; i < points.length(); i++) {
+                    currentPoints.put(points.get(i));
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error adding progress points", e);
+            }
+            
+            progressStyle.put("points", currentPoints);
+            Log.d(TAG, "Updated points: " + currentPoints.toString());
+            
+            // Recrear y mostrar la notificación actualizada
+            try {
+                String channelId = notification.getString("channelId", "default");
+                int notificationId = notification.getInteger("id");
+                NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, notificationId);
+                if (builder != null) {
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
+                    notificationManager.notify(notificationId, builder.build());
+                    
+                    // Actualizar en el storage
+                    deliveredNotifications.put(notificationId, notification);
+                    
+                    Log.d(TAG, "Progress points added successfully for notification: " + notificationId);
+                } else {
+                    Log.e(TAG, "Failed to create notification builder for update");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating progress points", e);
+                call.reject("Error updating progress points: " + e.getMessage());
+                return;
+            }
+        } else {
+            Log.w(TAG, "Notification not found or points is null. ID: " + id);
+            call.reject("Notification not found or invalid points");
+            return;
         }
         
         call.resolve();
@@ -949,13 +1019,50 @@ public class ModernNotificationsPlugin extends Plugin {
         int id = call.getInt("id", 0);
         JSArray segments = call.getArray("segments");
 
+        Log.d(TAG, "Updating progress segments for notification: " + id);
+
+        // Buscar la notificación en delivered o scheduled
         JSObject notification = deliveredNotifications.get(id);
+        if (notification == null) {
+            notification = scheduledNotifications.get(id);
+        }
+        
         if (notification != null && segments != null) {
+            // Actualizar los segmentos en el progressStyle
             JSObject progressStyle = notification.getJSObject("progressStyle");
-            if (progressStyle != null) {
-                progressStyle.put("segments", segments);
-                scheduleNotification(notification);
+            if (progressStyle == null) {
+                progressStyle = new JSObject();
+                notification.put("progressStyle", progressStyle);
             }
+            
+            progressStyle.put("segments", segments);
+            Log.d(TAG, "Updated segments: " + segments.toString());
+            
+            // Recrear y mostrar la notificación actualizada
+            try {
+                String channelId = notification.getString("channelId", "default");
+                int notificationId = notification.getInteger("id");
+                NotificationCompat.Builder builder = createNotificationBuilder(notification, channelId, notificationId);
+                if (builder != null) {
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
+                    notificationManager.notify(notificationId, builder.build());
+                    
+                    // Actualizar en el storage
+                    deliveredNotifications.put(notificationId, notification);
+                    
+                    Log.d(TAG, "Progress segments updated successfully for notification: " + notificationId);
+                } else {
+                    Log.e(TAG, "Failed to create notification builder for update");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating progress segments", e);
+                call.reject("Error updating progress segments: " + e.getMessage());
+                return;
+            }
+        } else {
+            Log.w(TAG, "Notification not found or segments is null. ID: " + id);
+            call.reject("Notification not found or invalid segments");
+            return;
         }
         
         call.resolve();
