@@ -551,27 +551,94 @@ public class ModernNotificationsPlugin extends Plugin {
                 // Add tracker icon if provided
                 if (progressStyle.has("trackerIcon")) {
                     String iconName = progressStyle.getString("trackerIcon");
+                    Log.d(TAG, "🎯 Attempting to set trackerIcon: " + iconName);
+                    
                     if (iconName != null) {
+                        Icon trackerIcon = null;
+                        
+                        // ✅ Estrategia 1: Buscar en recursos de la app
                         int iconRes = getContext().getResources().getIdentifier(
                             iconName, "drawable", getContext().getPackageName()
                         );
+                        
                         if (iconRes != 0) {
-                            Icon trackerIcon = Icon.createWithResource(getContext(), iconRes);
-                            ps.setProgressTrackerIcon(trackerIcon);
+                            trackerIcon = Icon.createWithResource(getContext(), iconRes);
+                            Log.d(TAG, "✅ TrackerIcon found in app resources: " + iconName + " -> " + iconRes);
+                        } else {
+                            Log.d(TAG, "⚠️ TrackerIcon not found in app resources: " + iconName);
+                            
+                            // ✅ Estrategia 2: Buscar en recursos del sistema Android
+                            try {
+                                int systemIconRes = getContext().getResources().getIdentifier(
+                                    iconName, "drawable", "android"
+                                );
+                                if (systemIconRes != 0) {
+                                    trackerIcon = Icon.createWithResource(getContext(), systemIconRes);
+                                    Log.d(TAG, "✅ TrackerIcon found in Android system resources: " + iconName + " -> " + systemIconRes);
+                                } else {
+                                    Log.w(TAG, "⚠️ TrackerIcon not found in system resources: " + iconName);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error accessing system resources for trackerIcon", e);
+                            }
+                            
+                            // ✅ Estrategia 3: Fallback a ícono por defecto si no se encuentra
+                            if (trackerIcon == null) {
+                                Log.d(TAG, "🔄 Using default fallback icon for tracker");
+                                trackerIcon = Icon.createWithResource(getContext(), android.R.drawable.ic_dialog_info);
+                            }
                         }
+                        
+                        // Aplicar el ícono al ProgressStyle
+                        if (trackerIcon != null) {
+                            ps.setProgressTrackerIcon(trackerIcon);
+                            Log.d(TAG, "🎯 TrackerIcon applied successfully to ProgressStyle");
+                        } else {
+                            Log.e(TAG, "❌ Failed to create trackerIcon - no icon applied");
+                        }
+                    } else {
+                        Log.w(TAG, "⚠️ TrackerIcon name is null");
                     }
                 }
                 
                 // Add start icon if provided
                 if (progressStyle.has("startIcon")) {
                     String iconName = progressStyle.getString("startIcon");
+                    Log.d(TAG, "🎯 Attempting to set startIcon: " + iconName);
+                    
                     if (iconName != null) {
+                        Icon startIcon = null;
+                        
+                        // ✅ Estrategia 1: Buscar en recursos de la app
                         int iconRes = getContext().getResources().getIdentifier(
                             iconName, "drawable", getContext().getPackageName()
                         );
+                        
                         if (iconRes != 0) {
-                            Icon startIcon = Icon.createWithResource(getContext(), iconRes);
+                            startIcon = Icon.createWithResource(getContext(), iconRes);
+                            Log.d(TAG, "✅ StartIcon found in app resources: " + iconName + " -> " + iconRes);
+                        } else {
+                            // ✅ Estrategia 2: Buscar en recursos del sistema Android
+                            try {
+                                int systemIconRes = getContext().getResources().getIdentifier(
+                                    iconName, "drawable", "android"
+                                );
+                                if (systemIconRes != 0) {
+                                    startIcon = Icon.createWithResource(getContext(), systemIconRes);
+                                    Log.d(TAG, "✅ StartIcon found in Android system: " + iconName + " -> " + systemIconRes);
+                                } else {
+                                    Log.w(TAG, "⚠️ StartIcon not found: " + iconName);
+                                    startIcon = Icon.createWithResource(getContext(), android.R.drawable.ic_media_play);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error with startIcon", e);
+                                startIcon = Icon.createWithResource(getContext(), android.R.drawable.ic_media_play);
+                            }
+                        }
+                        
+                        if (startIcon != null) {
                             ps.setProgressStartIcon(startIcon);
+                            Log.d(TAG, "🎯 StartIcon applied successfully");
                         }
                     }
                 }
@@ -579,13 +646,41 @@ public class ModernNotificationsPlugin extends Plugin {
                 // Add end icon if provided
                 if (progressStyle.has("endIcon")) {
                     String iconName = progressStyle.getString("endIcon");
+                    Log.d(TAG, "🎯 Attempting to set endIcon: " + iconName);
+                    
                     if (iconName != null) {
+                        Icon endIcon = null;
+                        
+                        // ✅ Estrategia 1: Buscar en recursos de la app
                         int iconRes = getContext().getResources().getIdentifier(
                             iconName, "drawable", getContext().getPackageName()
                         );
+                        
                         if (iconRes != 0) {
-                            Icon endIcon = Icon.createWithResource(getContext(), iconRes);
+                            endIcon = Icon.createWithResource(getContext(), iconRes);
+                            Log.d(TAG, "✅ EndIcon found in app resources: " + iconName + " -> " + iconRes);
+                        } else {
+                            // ✅ Estrategia 2: Buscar en recursos del sistema Android
+                            try {
+                                int systemIconRes = getContext().getResources().getIdentifier(
+                                    iconName, "drawable", "android"
+                                );
+                                if (systemIconRes != 0) {
+                                    endIcon = Icon.createWithResource(getContext(), systemIconRes);
+                                    Log.d(TAG, "✅ EndIcon found in Android system: " + iconName + " -> " + systemIconRes);
+                                } else {
+                                    Log.w(TAG, "⚠️ EndIcon not found: " + iconName);
+                                    endIcon = Icon.createWithResource(getContext(), android.R.drawable.ic_menu_mylocation);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error with endIcon", e);
+                                endIcon = Icon.createWithResource(getContext(), android.R.drawable.ic_menu_mylocation);
+                            }
+                        }
+                        
+                        if (endIcon != null) {
                             ps.setProgressEndIcon(endIcon);
+                            Log.d(TAG, "🎯 EndIcon applied successfully");
                         }
                     }
                 }
